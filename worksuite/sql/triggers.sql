@@ -1,3 +1,5 @@
+USE worksuite;
+
 DELIMITER $$
 CREATE TRIGGER IF NOT EXISTS Generate_Account_PK BEFORE INSERT ON Accounts
 FOR EACH ROW
@@ -15,6 +17,16 @@ BEGIN
     DECLARE generatedValue BIGINT;  
     CALL Generate_PK_Procedure('User', generatedValue);
     SET NEW.USER_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_Org_PK BEFORE INSERT ON Organization
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('Organization', generatedValue);
+    SET NEW.ORG_ID = generatedValue;
 END$$
 DELIMITER ;
 
