@@ -31,6 +31,16 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_Role_PK BEFORE INSERT ON Role
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('Role', generatedValue);
+    SET NEW.ROLE_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS Generate_PK_Procedure(IN tableName VARCHAR(255), OUT generatedValue BIGINT)
 BEGIN
     CASE tableName

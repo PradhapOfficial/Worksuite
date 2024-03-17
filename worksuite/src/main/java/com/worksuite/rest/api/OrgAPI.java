@@ -20,46 +20,42 @@ import com.worksuite.core.bean.OrgPOJO;
 
 @Path("{userId}/org")
 public class OrgAPI {
-	
+
 	@GET
 	@Path("{orgId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public OrgPOJO getOrgDetails(@PathParam("userId") long userId, @PathParam("orgId") long orgId) {
-		
+
 		OrgBean orgBean = new OrgBeanImpl();
 		return orgBean.getOrgDetails(userId, orgId);
 	}
-	
+
 	@PUT
 	@Path("{orgId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public OrgPOJO updateOrgDetails(@PathParam("userId") long userId, @PathParam("orgId") long orgId, String jsonStr) {
-		
+
 		JsonObject jsonObj = new JsonParser().parse(jsonStr).getAsJsonObject();
-		OrgPOJO orgPojo = new OrgPOJO(jsonObj)
-				.setModifiedBy(userId);
-		
+		OrgPOJO orgPojo = new OrgPOJO(jsonObj).setModifiedBy(userId);
+
 		OrgBean orgBean = new OrgBeanImpl();
 		return orgBean.updateOrgDetails(userId, orgId, orgPojo);
 	}
-	
+
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public OrgPOJO addOrgDetails(@PathParam("userId") long userId, String jsonStr) {
-		
+
 		JsonObject jsonObj = new JsonParser().parse(jsonStr).getAsJsonObject();
-		OrgPOJO orgPojo = new OrgPOJO(jsonObj)
-				.setCreatedBy(userId)
-				.setModifiedBy(userId)
-				.setStatus(1);
-		
+		OrgPOJO orgPojo = new OrgPOJO(jsonObj).setCreatedBy(userId).setModifiedBy(userId).setStatus(1);
+
 		OrgBean orgBean = new OrgBeanImpl();
 		return orgBean.addOrgDetails(userId, orgPojo);
 	}
-	
+
 	@DELETE
 	@Path("{orgId}")
 	@Consumes(MediaType.APPLICATION_JSON)

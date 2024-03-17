@@ -55,19 +55,31 @@ public class OrgBeanImpl implements OrgBean {
 				return null;
 			}
 
-			orgPojo = OrgPOJO.convertResultSetToPojo(rs);
-			final long orgId = orgPojo.getOrgId();
-			(dbUtil = new DBUtil()).closeConnection(prep);
+			final long orgId = rs.getLong("ORG_ID");
 
-			query = "INSERT INTO OrganizationUserMapping(ORG_ID, USER_ID) VALUES ( ?, ? )";
+			query = new StringBuilder("SELECT ROLE_ID FROM Role WHERE ROLE_VALUE = 1").toString();
+			rs = prep.executeQuery(query);
+
+			if (!rs.next()) {
+				throw new Exception("Unable to insert RoleId");
+			}
+
+			final long roleId = rs.getLong("ROLE_ID");
+			(dbUtil = new DBUtil()).closeConnection(null, prep, rs);
+
+			query = "INSERT INTO OrganizationUserMapping(ORG_ID, USER_ID, ROLE_ID) VALUES (?, ?, ?)"; // Role Id - 1 -->
+																										// Super Admin
 			prep = conn.prepareStatement(query);
 
 			prep.setLong(1, orgId);
 			prep.setLong(2, userId);
+			prep.setLong(3, roleId);
 
 			if (prep.executeUpdate() == 0) {
 				throw new Exception("Failed to update in mapping table");
 			}
+
+			orgPojo = getOrgDetailsPrep(conn, userId, orgId);
 
 			return orgPojo;
 		} catch (Exception e) {
@@ -138,14 +150,8 @@ public class OrgBeanImpl implements OrgBean {
 				throw new Exception("Unable to insert");
 			}
 
-			String query = new StringBuilder("SELECT * FROM Organization WHERE ORG_ID = ").append(orgId).toString();
+			orgPojo = getOrgDetailsPrep(conn, userId, orgId);
 
-			rs = prep.executeQuery(query);
-			if (!rs.next()) {
-				return null;
-			}
-
-			orgPojo = OrgPOJO.convertResultSetToPojo(rs);
 			return orgPojo;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -183,7 +189,7 @@ public class OrgBeanImpl implements OrgBean {
 	}
 
 	private OrgPOJO getOrgDetailsPrep(Connection conn, final long userId, final long orgId) throws Exception {
-		String query = "SELECT * FROM OrganizationUserMapping INNER JOIN Organization ON OrganizationUserMapping.ORG_ID = Organization.ORG_ID WHERE OrganizationUserMapping.USER_ID = ? AND OrganizationUserMapping.ORG_ID = ?";
+		String query = "SELECT * FROM OrganizationUserMapping INNER JOIN Organization ON OrganizationUserMapping.ORG_ID = Organization.ORG_ID INNER JOIN Role ON OrganizationUserMapping.ROLE_ID = Role.ROLE_ID WHERE OrganizationUserMapping.USER_ID = ? AND OrganizationUserMapping.ORG_ID = ?";
 		return getOrgDetailsPrep(conn, userId, orgId, query);
 	}
 
@@ -199,9 +205,12 @@ public class OrgBeanImpl implements OrgBean {
 			prep.setLong(2, orgId);
 
 			rs = prep.executeQuery();
-			if (rs.next()) {
-				return OrgPOJO.convertResultSetToPojo(rs);
+
+			if (!rs.next()) {
+				throw new Exception("No row");
 			}
+
+			return OrgPOJO.convertResultSetToPojo(rs).setRoleDetails(RolePOJO.convertResultSetToPojo(rs));
 
 		} catch (Exception e) {
 			e.printStackTrace();
