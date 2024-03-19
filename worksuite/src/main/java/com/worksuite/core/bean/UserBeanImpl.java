@@ -285,16 +285,13 @@ public class UserBeanImpl implements UserBean {
 			prep = conn.prepareStatement(query);
 			
 			for(JsonElement jsonEle : newUsersList) {
-				 newUserId = jsonEle.getAsJsonObject().get("userId").getAsLong();
-				 newUserroleId = roleIdMap.getOrDefault(jsonEle.getAsJsonObject().get("role").getAsInt(), 3l);
-				
+				newUserId = jsonEle.getAsJsonObject().get("userId").getAsLong();
+				newUserroleId = roleIdMap.getOrDefault(jsonEle.getAsJsonObject().get("role").getAsInt(), 3l);
 				
 				prep.setLong(1, orgId);
 				prep.setLong(2, newUserId);
 				prep.setLong(3, newUserroleId);
-				
 				prep.addBatch();
-				
 			}
 			
 			int[] resultArray = prep.executeBatch();

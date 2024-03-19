@@ -41,6 +41,16 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_Scope_PK BEFORE INSERT ON Scope
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('Scope', generatedValue);
+    SET NEW.SCOPE_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS Generate_PK_Procedure(IN tableName VARCHAR(255), OUT generatedValue BIGINT)
 BEGIN
     CASE tableName

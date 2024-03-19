@@ -10,12 +10,12 @@
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>jersey.config.server.provider.packages</param-name>
-            <param-value>com.worksuite.rest.api</param-value>
+            <param-value>com.worksuite.rest.api,com.worksuite.integration.rest.api</param-value>
         </init-param>
     </servlet>
     
     <servlet-mapping>
         <servlet-name>Jersey Servlet</servlet-name>
-        <url-pattern>/api/*</url-pattern>
+        <url-pattern>/api/v1/*</url-pattern>
     </servlet-mapping>
 </web-app>
