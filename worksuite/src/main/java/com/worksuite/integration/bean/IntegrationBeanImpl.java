@@ -3,6 +3,7 @@ package com.worksuite.integration.bean;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.worksuite.db.util.DBUtil;
@@ -16,11 +17,10 @@ public class IntegrationBeanImpl implements IntegrationBean {
 		ResultSet rs = null;
 		DBUtil dbUtil = new DBUtil();
 		try {
-			
 			conn = DBUtil.getConnection();
 			getDetails(conn, orgId, integrationPojo);
-			String query = "INSERT INTO Integration (APP_ID, STATUS, ORG_ID, LEVEL, CREATED_BY, MODIFIED_BY, CREATED_TIME, MODIFIED_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 			
+			String query = "INSERT INTO Integration (APP_ID, STATUS, ORG_ID, LEVEL, CREATED_BY, MODIFIED_BY, CREATED_TIME, MODIFIED_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 			long currentTime = System.currentTimeMillis();
 			integrationPojo.setCreatedTime(currentTime)
 				.setModifiedTime(currentTime);
@@ -55,8 +55,7 @@ public class IntegrationBeanImpl implements IntegrationBean {
 			
 			integrationPojo = getDetailsIntegDetails(conn, integrationPojo);
 			addToTables(conn, uniqueId, integrationPojo.getIntegrationId(), level, authPojo, listOfIntegPropPojo);
-			return getDetails(conn, uniqueId, integrationPojo);
-			
+			return getDetailsByIntegId(conn, integrationPojo.getIntegrationId(), level);
 		}catch(Exception e) {
 			e.printStackTrace();
 		}finally {
@@ -72,7 +71,7 @@ public class IntegrationBeanImpl implements IntegrationBean {
 	}
 
 	@Override
-	public IntegrationPOJO getIntegDetails(long integrationId, int level) {
+	public IntegrationMasterPOJO getIntegDetails(long integrationId, int level) {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
@@ -100,17 +99,17 @@ public class IntegrationBeanImpl implements IntegrationBean {
 		return false;
 	}
 	
-	private IntegrationPOJO getDetailsByIntegId(Connection conn, final long integId, final int level) throws Exception{
+	private IntegrationMasterPOJO getDetailsByIntegId(Connection conn, final long integId, final int level) throws Exception{
 		String query = null;
 		PreparedStatement prep = null; 
 		ResultSet rs = null;
 		try {
 			if(level == 1) {
-				query = "SELECT * FROM IntegrationOrgMapping INNER JOIN Integration ON IntegrationOrgMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
+				query = "SELECT * FROM IntegrationOrgMapping INNER JOIN Integration ON IntegrationOrgMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
 			}else if(level == 2) {
-				query = "SELECT * FROM IntegrationDepartmentMapping INNER JOIN Integration ON IntegrationDepartmentMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
+				query = "SELECT * FROM IntegrationDepartmentMapping INNER JOIN Integration ON IntegrationDepartmentMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
 			}else if(level == 3) {
-				query = "SELECT * FROM IntegrationUserMapping INNER JOIN User ON IntegrationUserMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
+				query = "SELECT * FROM IntegrationUserMapping INNER JOIN Integration ON IntegrationUserMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
 			}
 			
 			if(query == null) {
@@ -120,16 +119,23 @@ public class IntegrationBeanImpl implements IntegrationBean {
 			prep = conn.prepareStatement(query);
 			prep.setLong(1, integId);
 			rs = prep.executeQuery();
-		
-			if(rs != null && rs.next()) {
-				return IntegrationPOJO.convertResultSetToPojo(rs);
+			List<IntegrationPropertyPOJO> listOfIntegProperty = new ArrayList<IntegrationPropertyPOJO>();
+			IntegrationPOJO integrationPojo = null;
+			AuthPOJO authPojo = null;
+			while(rs.next()) {
+				integrationPojo =  IntegrationPOJO.convertResultSetToPojo(rs);
+				authPojo = AuthPOJO.convertResultSetToPojo(rs);
+				listOfIntegProperty.add(IntegrationPropertyPOJO.convertResultSetToPojo(rs));
 			}
+			return  new IntegrationMasterPOJO()
+					.setIntegrationDetails(integrationPojo)
+					.setAuthDetails(authPojo)
+					.setPropertyDetails(listOfIntegProperty);
 		}catch(Exception e) {
 			throw e;
 		}finally {
 			new DBUtil().closeConnection(null, prep, rs);
 		}
-		return null;
 	}
 	
 	private IntegrationPOJO getDetailsIntegDetails(Connection conn, IntegrationPOJO integPojo) throws Exception{
@@ -138,7 +144,6 @@ public class IntegrationBeanImpl implements IntegrationBean {
 		ResultSet rs = null;
 		try {
 			query = "SELECT * FROM Integration WHERE CREATED_BY = ? AND CREATED_TIME = ? AND APP_ID = ? AND ORG_ID = ? AND LEVEL = ?";
-			
 			prep = conn.prepareStatement(query);
 			prep.setLong(1, integPojo.getCreatedBy());
 			prep.setLong(2, integPojo.getCreatedTime());
@@ -183,21 +188,22 @@ public class IntegrationBeanImpl implements IntegrationBean {
 			prep.setLong(3, integrationPojo.getLevel());
 			rs = prep.executeQuery();
 		
-			if(rs != null && rs.next()) {
+			List<IntegrationPropertyPOJO> listOfIntegProperty = new ArrayList<IntegrationPropertyPOJO>();
+			AuthPOJO authPojo = null;
+			while(rs.next()) {
 				integrationPojo =  IntegrationPOJO.convertResultSetToPojo(rs);
-				List<IntegrationPropertyPOJO> integProperty = IntegrationPropertyPOJO.convertResultSetToPojo(rs);
-				AuthPOJO authPojo = AuthPOJO.convertResultSetToPojo(rs);
-				return new IntegrationMasterPOJO()
-						.setIntegrationDetails(integrationPojo)
-						.setAuthDetails(authPojo)
-						.setPropertyDetails(integProperty);
+				authPojo = AuthPOJO.convertResultSetToPojo(rs);
+				listOfIntegProperty.add(IntegrationPropertyPOJO.convertResultSetToPojo(rs));
 			}
+			return  new IntegrationMasterPOJO()
+					.setIntegrationDetails(integrationPojo)
+					.setAuthDetails(authPojo)
+					.setPropertyDetails(listOfIntegProperty);
 		}catch(Exception e) {
 			throw e;
 		}finally {
 			new DBUtil().closeConnection(null, prep, rs);
 		}
-		return null;
 	}
 	
 	private boolean addToTables(Connection conn, final long uniqueId,  final long integrationId, final int level, AuthPOJO authPojo, List<IntegrationPropertyPOJO> listOfIntegPropPojo) throws Exception{

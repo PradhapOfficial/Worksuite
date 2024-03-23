@@ -75,30 +75,27 @@ public class IntegrationPropertyPOJO {
 		return this;
 	}
 	
-	public static List<IntegrationPropertyPOJO> convertResultSetToPojo(ResultSet rs) throws SQLException {
+	public static IntegrationPropertyPOJO convertResultSetToPojo(ResultSet rs) throws SQLException {
 		ResultSetMetaData rMeta = rs.getMetaData();
 		DBUtil dbUtil = new DBUtil();
-		List<IntegrationPropertyPOJO> listOfIntegProp = new ArrayList<>();
-		while(rs != null) {
-			IntegrationPropertyPOJO integPropPojo = new IntegrationPropertyPOJO();
-			if(dbUtil.hasColumn(rMeta, "INTEGRATION_PROPERTY_ID")) {
-				integPropPojo.setIntegrationPropertyId(rs.getLong("INTEGRATION_PROPERTY_ID"));
-			}
-			
-			if(dbUtil.hasColumn(rMeta, "PROPERTY_NAME")) {
-				integPropPojo.setPropertyName(rs.getString("PROPERTY_NAME"));
-			}
-			
-			if(dbUtil.hasColumn(rMeta, "PROPERTY_VALUE")) {
-				integPropPojo.setPropertyValue(rs.getString("PROPERTY_VALUE"));
-			}
-			
-			if(dbUtil.hasColumn(rMeta, "INTEGRATION_ID")) {
-				integPropPojo.setIntegrationId(rs.getLong("INTEGRATION_ID"));
-			}
-			listOfIntegProp.add(integPropPojo);
-			rs.next();
+		
+		IntegrationPropertyPOJO integPropPojo = new IntegrationPropertyPOJO();
+		if(dbUtil.hasColumn(rMeta, "INTEGRATION_PROPERTY_ID")) {
+			integPropPojo.setIntegrationPropertyId(rs.getLong("INTEGRATION_PROPERTY_ID"));
 		}
-		return listOfIntegProp;
+		
+		if(dbUtil.hasColumn(rMeta, "PROPERTY_NAME")) {
+			integPropPojo.setPropertyName(rs.getString("PROPERTY_NAME"));
+		}
+		
+		if(dbUtil.hasColumn(rMeta, "PROPERTY_VALUE")) {
+			integPropPojo.setPropertyValue(rs.getString("PROPERTY_VALUE"));
+		}
+		
+		if(dbUtil.hasColumn(rMeta, "INTEGRATION_ID")) {
+			integPropPojo.setIntegrationId(rs.getLong("INTEGRATION_ID"));
+		}
+		
+		return integPropPojo;
 	}
 }

@@ -124,13 +124,9 @@ public class UserBeanImpl implements UserBean {
 		ResultSet rs = null;
 		try {
 			String query = "SELECT * FROM User INNER JOIN OrganizationUserMapping ON User.USER_ID = OrganizationUserMapping.USER_ID INNER JOIN Organization ON OrganizationUserMapping.ORG_ID = Organization.ORG_ID INNER JOIN Role ON OrganizationUserMapping.ROLE_ID = Role.ROLE_ID WHERE OrganizationUserMapping.ORG_ID = ?";
-
 			conn = DBUtil.getConnection();
-
 			prep = conn.prepareStatement(query);
-
 			prep.setLong(1, orgId);
-
 			rs = prep.executeQuery();
 			
 			List<UserMasterPOJO> listOfUsers = new ArrayList<UserMasterPOJO>();
@@ -139,9 +135,7 @@ public class UserBeanImpl implements UserBean {
 
 				listOfUsers.add(new UserMasterPOJO().setUserDetails(UserPOJO.convertResultSetToPojo(rs)).setOrgDetails(orgPojo));
 			}
-
 			return listOfUsers;
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -157,11 +151,8 @@ public class UserBeanImpl implements UserBean {
 		ResultSet rs = null;
 		try {
 			String query = "SELECT * FROM User INNER JOIN OrganizationUserMapping ON User.USER_ID = OrganizationUserMapping.USER_ID INNER JOIN Organization ON OrganizationUserMapping.ORG_ID = Organization.ORG_ID INNER JOIN Role ON OrganizationUserMapping.ROLE_ID = Role.ROLE_ID WHERE OrganizationUserMapping.USER_ID = ? AND OrganizationUserMapping.ORG_ID = ?";
-
 			conn = DBUtil.getConnection();
-
 			prep = conn.prepareStatement(query);
-
 			prep.setLong(1, userId);
 			prep.setLong(2, orgId);
 
@@ -190,10 +181,8 @@ public class UserBeanImpl implements UserBean {
 		DBUtil dbUtil = new DBUtil();
 		try {
 			String query = "SELECT USER_ID FROM OrganizationUserMapping WHERE USER_ID = ? AND ORG_ID = ?";
-
 			conn = DBUtil.getConnection();
 			prep = conn.prepareStatement(query);
-
 			prep.setLong(1, userId);
 			prep.setLong(2, orgId);
 
@@ -208,7 +197,6 @@ public class UserBeanImpl implements UserBean {
 //			}
 			
 			dbUtil.closeConnection(rs);
-			
 			query = new StringBuilder("SELECT ROLE_ID FROM Role WHERE ROLE_VALUE = ").append(newUserObj.get("role").getAsLong()).toString();
 			
 			rs = prep.executeQuery(query);
@@ -220,16 +208,12 @@ public class UserBeanImpl implements UserBean {
 			final long roleId = rs.getLong("ROLE_ID");
 			
 			dbUtil.closeConnection(null, prep, rs);
-			
 			query = "INSERT INTO OrganizationUserMapping(ORG_ID, USER_ID, ROLE_ID) VALUES (?, ?, ?)";
-			
 			prep = conn.prepareStatement(query);
-			
 			prep.setLong(1, orgId);
 			prep.setLong(2, newUserObj.get("userId").getAsLong());
 			prep.setLong(3, roleId);
 			return prep.executeUpdate() > 0;
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {

@@ -2,7 +2,6 @@ package com.worksuite.integration.bean;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 
 import com.google.gson.JsonObject;
 import com.worksuite.db.util.DBUtil;
@@ -73,10 +72,11 @@ public class AuthPOJO {
 		return this;
 	}
 	
-	public static AuthPOJO convertResultSetToPojo(ResultSet rs) throws SQLException {
+	public static AuthPOJO convertResultSetToPojo(ResultSet rs) throws Exception {
 		ResultSetMetaData rMeta = rs.getMetaData();
 		AuthPOJO authPojo = new AuthPOJO();
 		DBUtil dbUtil = new DBUtil();
+		
 		if(dbUtil.hasColumn(rMeta, "AUTH_ID")) {
 			authPojo.setAuthId(rs.getLong("AUTH_ID"));
 		}

@@ -14,6 +14,6 @@ public interface IntegrationBean {
 	
 	public boolean deleteIntegnDetails(final long orgId, final long userId);
 
-	public IntegrationPOJO getIntegDetails(long integrationId, int level);
+	public IntegrationMasterPOJO getIntegDetails(long integrationId, int level);
 	
 }
