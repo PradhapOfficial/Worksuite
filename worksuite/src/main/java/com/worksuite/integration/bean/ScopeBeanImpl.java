@@ -50,7 +50,6 @@ public class ScopeBeanImpl implements ScopeBean {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		DBUtil dbUtil = new DBUtil();
-		ResultSet rs = null;
 		try {
 			conn = DBUtil.getConnection();
 			return getScopeDetails(conn, orgId, appId);
