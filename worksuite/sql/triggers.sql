@@ -51,6 +51,66 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_Integration_PK BEFORE INSERT ON Integration
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('Integration', generatedValue);
+    SET NEW.INTEGRATION_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_Auth_PK BEFORE INSERT ON Auth
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('Auth', generatedValue);
+    SET NEW.AUTH_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_IntegrationProperty_PK BEFORE INSERT ON IntegrationProperty
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('IntegrationProperty', generatedValue);
+    SET NEW.INTEGRATION_PROPERTY_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_IntegrationUserMapping_PK BEFORE INSERT ON IntegrationUserMapping
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('IntegrationUserMapping', generatedValue);
+    SET NEW.INTEGRATION_USER_MAPPING_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_IntegrationDepartmentMapping_PK BEFORE INSERT ON IntegrationDepartmentMapping
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('IntegrationDepartmentMapping', generatedValue);
+    SET NEW.INTEGRATION_DEPARTMENT_MAPPING_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_IntegrationOrgMapping_PK BEFORE INSERT ON IntegrationOrgMapping
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('IntegrationOrgMappingd', generatedValue);
+    SET NEW.INTEGRATION_ORG_MAPPING_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
 CREATE PROCEDURE IF NOT EXISTS Generate_PK_Procedure(IN tableName VARCHAR(255), OUT generatedValue BIGINT)
 BEGIN
     CASE tableName
@@ -64,7 +124,7 @@ BEGIN
             SET generatedValue = FLOOR(6000000 + RAND() * (9999999 - 6000000));
         
         WHEN 'Role' THEN
-            SET generatedValue = FLOOR(600000000 + RAND() * (999999999 - 600000000));
+            SET generatedValue = FLOOR(500000 + RAND() * (500100 - 500000));
         
         WHEN 'Scope' THEN
             SET generatedValue = FLOOR(6000000000 + RAND() * (9999999999 - 6000000000));
@@ -88,6 +148,12 @@ BEGIN
             SET generatedValue = FLOOR(60000000000000000 + RAND() * (99999999999999999 - 600000000000000));
        
         WHEN 'Auth' THEN
+            SET generatedValue = FLOOR(600000000000000000 + RAND() * (999999999999999999 - 6000000000000000));
+        
+        WHEN 'IntegrationProperty' THEN
+            SET generatedValue = FLOOR(5000000000 + RAND() * (5999999999 - 5000000000));
+
+        WHEN 'IntegrationOrgMapping' THEN
             SET generatedValue = FLOOR(600000000000000000 + RAND() * (999999999999999999 - 6000000000000000));
     END CASE;
 END$$

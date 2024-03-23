@@ -191,7 +191,7 @@ public class IntegrationPOJO {
 		if(dbUtil.hasColumn(rMeta, "MODIFIED_TIME")) {
 			integrationPojo.setModifiedTime(rs.getLong("MODIFIED_TIME"));
 		}
-		return null;
+		return integrationPojo;
 	}
 	
 	public JsonObject toJsonObject() {

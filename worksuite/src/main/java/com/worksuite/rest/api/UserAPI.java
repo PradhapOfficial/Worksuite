@@ -15,7 +15,6 @@ import javax.ws.rs.core.MediaType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.worksuite.core.bean.OrgPOJO;
 import com.worksuite.core.bean.UserBean;
 import com.worksuite.core.bean.UserBeanImpl;
 import com.worksuite.core.bean.UserMasterPOJO;
