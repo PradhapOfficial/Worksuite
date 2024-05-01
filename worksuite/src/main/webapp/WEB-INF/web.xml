@@ -12,6 +12,10 @@
             <param-name>jersey.config.server.provider.packages</param-name>
             <param-value>com.worksuite.rest.api,com.worksuite.integration.rest.api</param-value>
         </init-param>
+         <init-param>
+            <param-name>jersey.config.server.provider.classnames</param-name>
+            <param-value>com.worksuite.rest.api.common.RestExceptionMapper</param-value>
+        </init-param>
     </servlet>
     
     <servlet-mapping>

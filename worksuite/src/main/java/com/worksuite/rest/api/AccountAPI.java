@@ -11,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.worksuite.core.bean.AccountsBean;
@@ -38,7 +39,7 @@ public class AccountAPI {
 	@Produces(MediaType.APPLICATION_JSON)
 	public UserPOJO addAccountDetails(String jsonStr) {
 		try {
-			JsonObject jsonObject = new JsonParser().parse(jsonStr).getAsJsonObject();
+			JsonObject jsonObject = new Gson().fromJson(jsonStr, JsonObject.class);
 			AccountsPOJO accountsPojo = new AccountsPOJO(jsonObject);
 
 			UserPOJO userPojo = new UserPOJO(jsonObject).setEmailId(accountsPojo.getEmailId());
@@ -60,7 +61,7 @@ public class AccountAPI {
 
 			isValidEmailId(emailId);
 
-			JsonObject jsonObject = new JsonParser().parse(jsonStr).getAsJsonObject();
+			JsonObject jsonObject = new Gson().fromJson(jsonStr, JsonObject.class);
 			AccountsPOJO accountsPojo = new AccountsPOJO(jsonObject);
 			accountsPojo.setEmailId(emailId);
 

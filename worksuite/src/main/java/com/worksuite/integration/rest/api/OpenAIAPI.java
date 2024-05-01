@@ -7,43 +7,51 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.worksuite.external.rest.api.OpenAI;
-import com.worksuite.integration.bean.IntegrationBean;
-import com.worksuite.integration.bean.IntegrationBeanImpl;
 import com.worksuite.integration.bean.IntegrationMasterPOJO;
-import com.worksuite.integration.bean.ScopeBean;
-import com.worksuite.integration.bean.ScopeBeanImpl;
-import com.worksuite.integration.bean.ScopePOJO;
+import com.worksuite.integration.util.OpenAIUtil;
+import com.worksuite.rest.api.common.APIUtil;
+import com.worksuite.rest.api.common.ErrorCode;
+import com.worksuite.rest.api.common.RestException;
 
 @Path("{orgId}/openai/{userId}")
-public class OpenAIAPI {
+public class OpenAIAPI extends APIUtil {
+	
+	private static Logger LOGGER = LogManager.getLogger(OpenAIAPI.class);
+	
 	@POST
 	@Path("{appId}/{integrationId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getChat(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId, @PathParam("integrationId") long integrationId, String jsonStr) {
+	public String getChat(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId, @PathParam("integrationId") long integrationId, String jsonStr) throws RestException {
 		try {
-			ScopeBean scopeBean = new ScopeBeanImpl();
-			ScopePOJO scopePojo = scopeBean.getScopeDetails(orgId, appId);
-			if(scopePojo == null) {
-				throw new Exception("Not Rows Found");
-			}
 			
-			IntegrationBean integBean = new IntegrationBeanImpl();
-			IntegrationMasterPOJO integrationMasterPOJO = integBean.getIntegDetails(integrationId, scopePojo.getLevel());
+			isScopeRegistered(orgId, appId);
+			
+			LOGGER.log(Level.INFO, "scopePojo data :: " +  getScopePojo().toString());
+			
+			isValidIntegId(integrationId);
 		
-			if(integrationMasterPOJO == null) {
-				throw new Exception("No data");
-			}
+			IntegrationMasterPOJO integrationMasterPOJO = getIntegrationMasterPOJO();
+			LOGGER.log(Level.INFO, "integrationMasterPOJO data :: " + integrationMasterPOJO.toString());
 			
-			JsonObject jsonObj = new JsonParser().parse(jsonStr).getAsJsonObject();
+			JsonObject jsonObj = new Gson().fromJson(jsonStr, JsonObject.class);
+			
+			jsonObj = OpenAIUtil.setChatRequiredFileds(integrationMasterPOJO, jsonObj);
 			OpenAI openAI = new OpenAI();
+			
 			return openAI.getChat(integrationMasterPOJO.getAuthDetails().getToken(), jsonObj).toString();
+		}catch(RestException re) {
+			throw re;
 		}catch(Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.ERROR, "Exception occured while getChat :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
-		return null;
 	}
 }

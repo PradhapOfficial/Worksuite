@@ -12,7 +12,7 @@ public interface IntegrationBean {
 	
 	public List<IntegrationPOJO> getListOfIntegDetails(final long orgId, final long userId, final long integrationId);
 	
-	public boolean deleteIntegnDetails(final long orgId, final long userId);
+	public boolean deleteIntegnDetails(long orgId, long userId, long integrationId) throws Exception;
 
 	public IntegrationMasterPOJO getIntegDetails(long integrationId, int level);
 	

@@ -2,6 +2,10 @@ package com.worksuite.integration.bean;
 
 import java.util.List;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.worksuite.core.bean.AccountsPOJO;
+
 public class IntegrationMasterPOJO {
 
 	private IntegrationPOJO integrationDetails;
@@ -35,5 +39,14 @@ public class IntegrationMasterPOJO {
 	public IntegrationMasterPOJO setAuthDetails(AuthPOJO authDetails) {
 		this.authDetails = authDetails;
 		return this;
+	}
+	
+	public JsonObject toJsonObject() {
+		return (JsonObject) new Gson().toJsonTree(this, IntegrationMasterPOJO.class);
+	}
+	
+	@Override
+	public String toString() {
+		return toJsonObject().toString();
 	}
 }

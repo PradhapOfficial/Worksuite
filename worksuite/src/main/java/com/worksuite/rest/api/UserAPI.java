@@ -12,6 +12,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -55,7 +56,7 @@ public class UserAPI {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String mapUserToOrg(@PathParam("orgId") long orgId, @PathParam("userId") long userId, String jsonStr) {
 		try {
-			JsonObject jsonObj = new JsonParser().parse(jsonStr).getAsJsonObject();
+			JsonObject jsonObj = new Gson().fromJson(jsonStr, JsonObject.class);
 			
 			UserBean userBean = new UserBeanImpl();
 			
@@ -80,8 +81,8 @@ public class UserAPI {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String mapListUsersToOrg(@PathParam("orgId") long orgId, @PathParam("userId") long userId, String jsonStr) {
 		try {
-			JsonArray jsonar = new JsonParser().parse(jsonStr).getAsJsonArray();
 			
+			JsonArray jsonar = new Gson().fromJson(jsonStr, JsonArray.class);
 			UserBean userBean = new UserBeanImpl();
 			
 			if(userBean.getUserDetails(userId) == null) {
@@ -105,7 +106,7 @@ public class UserAPI {
 	@Produces(MediaType.APPLICATION_JSON)
 	public UserPOJO updateUserDetails(@PathParam("userId") long userId, String jsonStr) {
 		try {
-			JsonObject jsonObj = new JsonParser().parse(jsonStr).getAsJsonObject();
+			JsonObject jsonObj = new Gson().fromJson(jsonStr, JsonObject.class);
 			UserPOJO userPojo = new UserPOJO(jsonObj);
 			UserBean userBean = new UserBeanImpl();
 			return userBean.updateUserDetails(userId, userPojo);

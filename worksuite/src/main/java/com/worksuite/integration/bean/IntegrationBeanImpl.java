@@ -94,8 +94,25 @@ public class IntegrationBeanImpl implements IntegrationBean {
 	}
 
 	@Override
-	public boolean deleteIntegnDetails(long orgId, long userId) {
-		// TODO Auto-generated method stub
+	public boolean deleteIntegnDetails(long orgId, long userId, long integrationId) throws Exception{
+		Connection conn = null;
+		PreparedStatement prep = null; 
+		ResultSet rs = null;
+		try {
+			String query = "DELETE FROM Integration WHERE INTEGRATION_ID = ?";
+			
+			conn = DBUtil.getConnection();
+			prep = conn.prepareStatement(query);
+			prep.setLong(1, integrationId);
+			
+			if(prep.executeUpdate() > 0) {
+				return true;
+			}
+		}catch(Exception e) {
+			throw e;
+		}finally {
+			new DBUtil().closeConnection(null, prep, rs);
+		}
 		return false;
 	}
 	
@@ -108,14 +125,11 @@ public class IntegrationBeanImpl implements IntegrationBean {
 				query = "SELECT * FROM IntegrationOrgMapping INNER JOIN Integration ON IntegrationOrgMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
 			}else if(level == 2) {
 				query = "SELECT * FROM IntegrationDepartmentMapping INNER JOIN Integration ON IntegrationDepartmentMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
-			}else if(level == 3) {
+			}else {
 				query = "SELECT * FROM IntegrationUserMapping INNER JOIN Integration ON IntegrationUserMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
 			}
 			
-			if(query == null) {
-				throw new Exception("Query cannot be null");
-			}
-			
+		
 			prep = conn.prepareStatement(query);
 			prep.setLong(1, integId);
 			rs = prep.executeQuery();
@@ -127,6 +141,11 @@ public class IntegrationBeanImpl implements IntegrationBean {
 				authPojo = AuthPOJO.convertResultSetToPojo(rs);
 				listOfIntegProperty.add(IntegrationPropertyPOJO.convertResultSetToPojo(rs));
 			}
+			
+			if(integrationPojo == null) {
+				return null;
+			}
+			
 			return  new IntegrationMasterPOJO()
 					.setIntegrationDetails(integrationPojo)
 					.setAuthDetails(authPojo)

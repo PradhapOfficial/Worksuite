@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.worksuite.db.util.DBUtil;
 
@@ -171,5 +172,14 @@ public class ScopePOJO {
 			scopePojo.setModifiedTime(rs.getLong("MODIFIED_TIME"));
 		}
 		return scopePojo;
+	}
+	
+	public JsonObject toJsonObject() {
+		return (JsonObject) new Gson().toJsonTree(this, ScopePOJO.class);
+	}
+	
+	@Override
+	public String toString() {
+		return toJsonObject().toString();
 	}
 }
