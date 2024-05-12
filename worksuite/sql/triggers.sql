@@ -105,8 +105,18 @@ CREATE TRIGGER IF NOT EXISTS Generate_IntegrationOrgMapping_PK BEFORE INSERT ON 
 FOR EACH ROW
 BEGIN
     DECLARE generatedValue BIGINT;  
-    CALL Generate_PK_Procedure('IntegrationOrgMappingd', generatedValue);
+    CALL Generate_PK_Procedure('IntegrationOrgMapping', generatedValue);
     SET NEW.INTEGRATION_ORG_MAPPING_ID = generatedValue;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER IF NOT EXISTS Generate_TokenMapping_PK BEFORE INSERT ON TokenMapping
+FOR EACH ROW
+BEGIN
+    DECLARE generatedValue BIGINT;  
+    CALL Generate_PK_Procedure('TokenMapping', generatedValue);
+    SET NEW.TOKEN_MAPPING_ID = generatedValue;
 END$$
 DELIMITER ;
 
@@ -155,6 +165,9 @@ BEGIN
 
         WHEN 'IntegrationOrgMapping' THEN
             SET generatedValue = FLOOR(600000000000000000 + RAND() * (999999999999999999 - 6000000000000000));
+       
+        WHEN 'TokenMapping' THEN
+            SET generatedValue = FLOOR(400000000 + RAND() * (500000000 - 400000000));
     END CASE;
 END$$
 DELIMITER ;

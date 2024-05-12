@@ -5,6 +5,13 @@
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
   
+  <welcome-file-list>  
+	   <welcome-file>index.jsp</welcome-file>  
+  </welcome-file-list>  
+  
+  
+  
+  
   <servlet>
         <servlet-name>Jersey Servlet</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
@@ -14,7 +21,7 @@
         </init-param>
          <init-param>
             <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>com.worksuite.rest.api.common.RestExceptionMapper</param-value>
+            <param-value>com.worksuite.rest.api.common.RestExceptionMapper,com.worksuite.rest.api.common.CustomResponseFilter</param-value>
         </init-param>
     </servlet>
     
@@ -22,4 +29,13 @@
         <servlet-name>Jersey Servlet</servlet-name>
         <url-pattern>/api/v1/*</url-pattern>
     </servlet-mapping>
+    
+    <filter>
+  		<filter-name>Security Filter</filter-name>
+  		<filter-class>com.worksuite.rest.filter.SecurityFilter</filter-class>
+  </filter>
+  <filter-mapping>
+  		<filter-name>Security Filter</filter-name>
+  		<url-pattern>/*</url-pattern>
+  </filter-mapping>
 </web-app>

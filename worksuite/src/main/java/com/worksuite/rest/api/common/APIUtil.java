@@ -20,6 +20,8 @@ public class APIUtil {
 	
 	private UserMasterPOJO userMasterPOJO;
 	
+	private UserPOJO userPojo;
+	
 	public boolean isValidAppId(long appId) throws RestException {
 		if(!IntegrationConstants.isValidAppId(appId)) {
 			throw new RestException(ErrorCode.INVALID_APP_ID);
@@ -72,7 +74,7 @@ public class APIUtil {
 	
 	public boolean isValidUserId(long userId) throws RestException {
 		UserBean userBean = new UserBeanImpl();
-		UserPOJO userPojo = userBean.getUserDetails(userId);
+		this.userPojo = userBean.getUserDetails(userId);
 		
 		if(userPojo == null) {
 			throw new RestException(ErrorCode.INVALID_USER_ID);
@@ -86,5 +88,9 @@ public class APIUtil {
 	
 	public IntegrationMasterPOJO getIntegrationMasterPOJO() {
 		return this.integrationMasterPOJO;
+	}
+	
+	public UserPOJO getUserPojo() {
+		return this.userPojo;
 	}
 }

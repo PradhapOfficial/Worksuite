@@ -16,7 +16,9 @@ public enum ErrorCode {
 	
 	INVALID_APP_ID("1005", HttpServletResponse.SC_FORBIDDEN, "Invalid App Id"),
 	
-	NOT_ORG_ADMIN("1006", HttpServletResponse.SC_FORBIDDEN, "Not An Org Admin");
+	NOT_ORG_ADMIN("1006", HttpServletResponse.SC_FORBIDDEN, "Not An Org Admin"),
+	
+	INVALID_TOKEN("1007", HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
 	
 	String errorCode;
 	
