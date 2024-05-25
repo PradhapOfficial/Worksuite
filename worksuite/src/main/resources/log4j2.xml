@@ -15,7 +15,7 @@
 			fileName="${filename}/Application.log"
 			filePattern="${filename}/Application%i.log">
 			<PatternLayout>
-				<pattern>%d - %C [%M] -($p) %m %n</pattern>
+				<pattern>%d - %C [%M] %m %n</pattern>
 			</PatternLayout>
 			<SizeBasedTriggeringPolicy size="50000" />
 		</RollingFile>
