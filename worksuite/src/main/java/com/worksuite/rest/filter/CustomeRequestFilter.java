@@ -1,20 +1,11 @@
 package com.worksuite.rest.filter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
 
 import com.worksuite.core.bean.AccountsBean;
 import com.worksuite.core.bean.AccountsBeanImpl;
@@ -25,21 +16,16 @@ import com.worksuite.core.bean.UserPOJO;
 import com.worksuite.rest.api.common.AuthorizationUtils;
 import com.worksuite.rest.api.common.ConfigConstants;
 
-public class SecurityFilter implements Filter {
-	
-	private static final Logger LOGGER = LogManager.getLogger(SecurityFilter.class.getName());
-	
-	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-			throws IOException, ServletException {
-		
+public class CustomeRequestFilter {
+//
+//	
+//	public void filter(ContainerRequestContext request) throws IOException {
 //		HttpServletRequest httpRequest = 	((HttpServletRequest)request);
-//		HttpServletResponse httpResponse = (HttpServletResponse)response;
 //		String csrfToken = httpRequest.getHeader(ConfigConstants.X_CSRF_TOKEN);
 //		if(csrfToken == null) {
 //			String reqUri = httpRequest.getRequestURI();
-//			if((!reqUri.matches("/worksuite/api/v1/login"))) {
-//				request.getRequestDispatcher("/login.jsp").forward(request, response);	
+//			if((!reqUri.matches("/worksuite/api/v1/login") || !reqUri.matches("/worksuite/index"))) {
+//				httpRequest.getRequestDispatcher("/login.jsp").forward(httpRequest, null);
 //			}
 //			
 //			String userName = httpRequest.getParameter(ConfigConstants.USER_NAME);
@@ -50,8 +36,6 @@ public class SecurityFilter implements Filter {
 //			
 //			if(userPojo == null) {
 //				LOGGER.info("Invalid user name and password");
-//				//httpResponse.sendRedirect("/worksuite/api/v1/login");
-//				request.getRequestDispatcher("/login.jsp").forward(request, response);
 //				//httpResponse.sendError(401, "UNAUTHORIZED");
 //				return;
 //			}
@@ -73,7 +57,7 @@ public class SecurityFilter implements Filter {
 //			
 //			httpResponse.addHeader(ConfigConstants.X_CSRF_TOKEN, tokenBuilder.toString());
 //			//request.getRequestDispatcher("/index.jsp").forward(request, response);
-//			//((HttpServletResponse)response).sendRedirect("http://localhost:8081/worksuite/index.jsp?userName=pradhap@gmail.com&passWord=Pradhap@123");
+//			((HttpServletResponse)response).sendRedirect("http://localhost:8081/worksuite/index.jsp?userName=pradhap@gmail.com&passWord=Pradhap@123");
 //			return;
 //		}else {
 //			String token = csrfToken.split("=")[1];
@@ -82,19 +66,7 @@ public class SecurityFilter implements Filter {
 //				request.getRequestDispatcher("/login.jsp").forward(request, response);
 //			}
 //		}
-		chain.doFilter(request, response);
-	}
-
-	@Override
-	public void init(FilterConfig filterConfig) throws ServletException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void destroy() {
-		// TODO Auto-generated method stub
-		
-	}
+//		chain.doFilter(request, response);
+//	}
 
 }

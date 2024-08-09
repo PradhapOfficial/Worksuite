@@ -1,5 +1,7 @@
 package com.worksuite.integration.rest.api;
 
+
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -13,35 +15,37 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.worksuite.external.rest.api.GeminiAI;
 import com.worksuite.external.rest.api.OpenAI;
 import com.worksuite.integration.bean.IntegrationMasterPOJO;
-import com.worksuite.integration.util.OpenAIUtil;
+import com.worksuite.integration.util.GeminiAIUtil;
 import com.worksuite.rest.api.common.APIUtil;
 import com.worksuite.rest.api.common.ErrorCode;
 import com.worksuite.rest.api.common.RestException;
 
-@Path("{orgId}/openai/{userId}")
-public class OpenAIAPI extends APIUtil {
-	
-	private static Logger LOGGER = LogManager.getLogger(OpenAIAPI.class);
+@Path("{orgId}/geminiai/{userId}")
+public class GeminiAIAPI extends APIUtil{
+
+	private static final Logger LOGGER = LogManager.getLogger(GeminiAIAPI.class);
 	
 	@POST
 	@Path("{appId}/{integrationId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getChat(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId, @PathParam("integrationId") long integrationId, String jsonStr) throws RestException {
+	public String getChat(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId, @PathParam("integrationId") long integrationId, String payloadStr) throws RestException {
 		try {
 			isScopeRegistered(orgId, appId);
 			isValidIntegId(integrationId);
-			LOGGER.log(Level.INFO, "Data while getChat called :: ");
-			IntegrationMasterPOJO integrationMasterPOJO = getIntegrationMasterPOJO();
 			
-			LOGGER.log(Level.INFO, "Data while getChat :: " + integrationMasterPOJO.toString());
-			JsonObject jsonObj = new Gson().fromJson(jsonStr, JsonObject.class);
+			JsonObject payloadJson = new Gson().fromJson(payloadStr, JsonObject.class);
+			IntegrationMasterPOJO integrationMasterPojo = this.getIntegrationMasterPOJO();
+			String apiKey = integrationMasterPojo.getAuthDetails().getToken();
 			
-			jsonObj = OpenAIUtil.setChatRequiredFileds(integrationMasterPOJO, jsonObj);
-			OpenAI openAI = new OpenAI();
-			return openAI.getChat(integrationMasterPOJO.getAuthDetails().getToken(), jsonObj).toString();
+			String message = payloadJson.get("content").getAsString();
+			payloadJson = GeminiAIUtil.setRequiredFields(message);
+			
+			LOGGER.log(Level.INFO, "getChat info :: " + payloadJson.toString());
+			return GeminiAI.getChat(apiKey, payloadJson).toString();
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {

@@ -12,7 +12,7 @@ public class ConfigConstants {
 	
 	public static final String USER_ID =  "userId";
 	
-	public static final String USER_NAME =  "userName";
+	public static final String USER_NAME =  "username";
 	
-	public static final String PASSWORD =  "passWord";
+	public static final String PASSWORD =  "password";
 }

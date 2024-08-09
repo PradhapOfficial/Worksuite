@@ -17,7 +17,7 @@
 			<PatternLayout>
 				<pattern>%d - %C [%M] %m %n</pattern>
 			</PatternLayout>
-			<SizeBasedTriggeringPolicy size="50000" />
+			<SizeBasedTriggeringPolicy size="500000" />
 		</RollingFile>
 
 	</Appenders>

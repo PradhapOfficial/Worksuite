@@ -1,4 +1,4 @@
-USE worksuite;
+-- USE worksuite;
 
 DELIMITER $$
 CREATE TRIGGER IF NOT EXISTS Generate_Account_PK BEFORE INSERT ON Accounts
