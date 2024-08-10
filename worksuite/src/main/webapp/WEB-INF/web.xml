@@ -6,7 +6,7 @@
   <display-name>Archetype Created Web Application</display-name>
   
   <welcome-file-list>  
-	   <welcome-file>index.jsp</welcome-file>  
+	   <welcome-file>login.jsp</welcome-file>  
   </welcome-file-list>
   <servlet>
         <servlet-name>Jersey Servlet</servlet-name>
@@ -25,7 +25,7 @@
         <servlet-name>Jersey Servlet</servlet-name>
         <url-pattern>/api/v1/*</url-pattern>
     </servlet-mapping>
-    
+  
     <filter>
   		<filter-name>Security Filter</filter-name>
   		<filter-class>com.worksuite.rest.filter.SecurityFilter</filter-class>
@@ -41,7 +41,7 @@
 	</error-page>
 
 	<error-page>
-			<exception-type>java.lang.Exception</exception-type>
+			<exception-type>java.lang.Throwable</exception-type>
 			<location>/Error.jsp</location>
 	</error-page>
 </web-app>

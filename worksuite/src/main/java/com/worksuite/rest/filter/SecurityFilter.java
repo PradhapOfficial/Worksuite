@@ -3,6 +3,8 @@ package com.worksuite.rest.filter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -33,68 +35,38 @@ public class SecurityFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		
-//		HttpServletRequest httpRequest = 	((HttpServletRequest)request);
-//		HttpServletResponse httpResponse = (HttpServletResponse)response;
-//		String csrfToken = httpRequest.getHeader(ConfigConstants.X_CSRF_TOKEN);
-//		if(csrfToken == null) {
-//			String reqUri = httpRequest.getRequestURI();
-//			if((!reqUri.matches("/worksuite/api/v1/login"))) {
-//				request.getRequestDispatcher("/login.jsp").forward(request, response);	
-//			}
-//			
-//			String userName = httpRequest.getParameter(ConfigConstants.USER_NAME);
-//			String password = httpRequest.getParameter(ConfigConstants.PASSWORD);
-//			
-//			AccountsBean accountBean = new AccountsBeanImpl();
-//			UserPOJO userPojo = accountBean.getAccountDetails(userName, password);
-//			
-//			if(userPojo == null) {
-//				LOGGER.info("Invalid user name and password");
-//				//httpResponse.sendRedirect("/worksuite/api/v1/login");
-//				request.getRequestDispatcher("/login.jsp").forward(request, response);
-//				//httpResponse.sendError(401, "UNAUTHORIZED");
-//				return;
-//			}
-//			
-//			long userId = userPojo.getUserId();
-//			AuthorizationUtils authUtils = new AuthorizationUtils();
-//			String token = authUtils.getToken(userPojo.toString());
-//			
-//			TokenMappingPojo tokenMappingPojo = new TokenMappingPojo().setUserId(userId).setToken(token);
-//			
-//			TokenMappingBean tokenMappingBean = new TokenMappingBeanImpl();
-//			if((tokenMappingPojo = tokenMappingBean.addToken(tokenMappingPojo)) == null) {
-//				//httpResponse.sendError(401, "UNAUTHORIZED");
-//				return;
-//			}
-//			
-//			StringBuilder tokenBuilder = new StringBuilder(ConfigConstants.WS_CSRF_BEARER);
-//			tokenBuilder.append(token);
-//			
-//			httpResponse.addHeader(ConfigConstants.X_CSRF_TOKEN, tokenBuilder.toString());
-//			//request.getRequestDispatcher("/index.jsp").forward(request, response);
-//			//((HttpServletResponse)response).sendRedirect("http://localhost:8081/worksuite/index.jsp?userName=pradhap@gmail.com&passWord=Pradhap@123");
-//			return;
-//		}else {
-//			String token = csrfToken.split("=")[1];
-//			AuthorizationUtils authUtils = new AuthorizationUtils();
-//			if(!authUtils.isValidToken(token)) {
-//				request.getRequestDispatcher("/login.jsp").forward(request, response);
-//			}
-//		}
+		HttpServletRequest httpRequest = ((HttpServletRequest)request);
+		HttpServletResponse httpResponse = (HttpServletResponse)response;
+		String csrfToken = httpRequest.getHeader(ConfigConstants.X_CSRF_TOKEN);
+		String reqUri = httpRequest.getRequestURI();
+		
+		Pattern urlPattern = Pattern.compile("/(worksuite/)api/v");
+		Matcher apiUrlMatcher = urlPattern.matcher(reqUri);
+		
+		if(csrfToken == null) {
+			if(reqUri.matches("/(worksuite/)index.jsp")) {
+				String token = httpRequest.getParameter("token");
+				if(token != null) {
+					AuthorizationUtils authUtils = new AuthorizationUtils();
+					if(!authUtils.isValidToken(token)) {
+						httpResponse.sendRedirect("login.jsp");
+					}
+				}else {
+					httpResponse.sendRedirect("login.jsp");	
+				}
+			}else if(apiUrlMatcher.find()) {
+				httpResponse.sendError(401, "UNAUTHORIZED");
+			}else if(!reqUri.matches("/(worksuite/)login.jsp")) {
+				httpResponse.sendRedirect("login.jsp");	
+			}
+		}else {
+			String token = csrfToken.split("=")[1];
+			AuthorizationUtils authUtils = new AuthorizationUtils();
+			if(!authUtils.isValidToken(token)) {
+				httpResponse.sendRedirect("login.jsp");
+			}
+		}
 		chain.doFilter(request, response);
-	}
-
-	@Override
-	public void init(FilterConfig filterConfig) throws ServletException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void destroy() {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

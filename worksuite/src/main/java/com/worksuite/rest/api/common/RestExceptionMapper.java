@@ -11,8 +11,6 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.worksuite.integration.rest.api.ScopeAPI;
-
 public class RestExceptionMapper implements ExceptionMapper<Throwable> {
 
 	private static final Logger LOGGER = LogManager.getLogger(RestExceptionMapper.class.getName());
