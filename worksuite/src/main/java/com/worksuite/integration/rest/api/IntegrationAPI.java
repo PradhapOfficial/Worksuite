@@ -20,7 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.worksuite.integration.bean.AuthPOJO;
 import com.worksuite.integration.bean.IntegrationBean;
 import com.worksuite.integration.bean.IntegrationBeanImpl;
@@ -76,7 +75,7 @@ public class IntegrationAPI extends APIUtil {
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while addIntegDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while addIntegDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -97,7 +96,27 @@ public class IntegrationAPI extends APIUtil {
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while getIntegDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while getIntegDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@GET
+	@Path("{appId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public IntegrationMasterPOJO getIntegDetailsByAppId(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId) throws RestException {
+		try {
+			isValidAppId(appId);
+			isUserPresentInOrg(orgId, userId);
+			isScopeRegistered(orgId, appId);
+			
+			IntegrationBean integBean = new IntegrationBeanImpl();
+			return integBean.getIntegDetailsByLevel(userId, getScopePojo().getLevel());
+		}catch(RestException re) {
+			throw re;
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while getIntegDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -125,7 +144,7 @@ public class IntegrationAPI extends APIUtil {
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while deleteIntegDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while deleteIntegDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 	}

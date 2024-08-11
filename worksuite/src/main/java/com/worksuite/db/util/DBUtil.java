@@ -6,6 +6,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.worksuite.db.util.ApplicationConstants.DATA_BASE;
 
 public class DBUtil {
@@ -20,6 +24,8 @@ public class DBUtil {
 
 	private static final String PASSWORD = dbPassWord != null ? dbPassWord : ApplicationUtils.getProperty(DATA_BASE.DB_PASSWORD.toString());
 
+	private static final Logger LOGGER = LogManager.getLogger(DBUtil.class);
+	
 	public static Connection getConnection() throws Exception {
 		// Load DB Driver
 		Class.forName("com.mysql.cj.jdbc.Driver");
@@ -36,7 +42,7 @@ public class DBUtil {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("Exception occured in hasColumn :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while hasColumn :: ", e);
 		}
 		return false;
 	}
@@ -65,7 +71,7 @@ public class DBUtil {
 				conn.close();
 			}
 		} catch (Exception e) {
-			System.out.println("Exception occured while close connection : " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while closeConnection :: ", e);
 		}
 	}
 }

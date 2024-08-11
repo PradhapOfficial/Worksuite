@@ -16,7 +16,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.worksuite.integration.bean.ScopeBean;
 import com.worksuite.integration.bean.ScopeBeanImpl;
 import com.worksuite.integration.bean.ScopePOJO;
@@ -50,7 +49,7 @@ public class ScopeAPI extends APIUtil{
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while addScopeDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while addScopeDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -76,7 +75,7 @@ public class ScopeAPI extends APIUtil{
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while updateScopeDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while updateScopeDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -96,7 +95,7 @@ public class ScopeAPI extends APIUtil{
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while getScopeDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while getScopeDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -120,7 +119,7 @@ public class ScopeAPI extends APIUtil{
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while deleteScopeDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while deleteScopeDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 	}

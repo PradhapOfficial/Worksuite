@@ -18,12 +18,10 @@ public class RestExceptionMapper implements ExceptionMapper<Throwable> {
 	@Override
 	public Response toResponse(Throwable throwable) {
 		
-		LOGGER.log(Level.ERROR, "Error Respone in RestExceptionMapper :: " + throwable.getClass().getName() + " Stack Trace :: " + throwable);
+		LOGGER.log(Level.ERROR, "Error Respone in RestExceptionMapper :: ", throwable);
 		if(throwable instanceof RestException) {
 			return errorHandler((RestException)throwable);
 		}
-		String className = throwable.getClass().getName();
-		String stackTrace = throwable.getStackTrace().toString();
 		return errorHandler(ErrorCode.INTERNAL_SERVER_ERROR);
 	}
 

@@ -40,8 +40,7 @@ public class OpenAIAPI extends APIUtil {
 			JsonObject jsonObj = new Gson().fromJson(jsonStr, JsonObject.class);
 			
 			jsonObj = OpenAIUtil.setChatRequiredFileds(integrationMasterPOJO, jsonObj);
-			OpenAI openAI = new OpenAI();
-			return openAI.getChat(integrationMasterPOJO.getAuthDetails().getToken(), jsonObj).toString();
+			return OpenAI.getChat(integrationMasterPOJO.getAuthDetails().getToken(), jsonObj).toString();
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {

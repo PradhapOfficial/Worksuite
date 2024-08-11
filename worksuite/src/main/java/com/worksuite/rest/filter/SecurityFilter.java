@@ -1,29 +1,22 @@
 package com.worksuite.rest.filter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.worksuite.core.bean.AccountsBean;
-import com.worksuite.core.bean.AccountsBeanImpl;
-import com.worksuite.core.bean.TokenMappingBean;
-import com.worksuite.core.bean.TokenMappingBeanImpl;
-import com.worksuite.core.bean.TokenMappingPojo;
-import com.worksuite.core.bean.UserPOJO;
+import com.worksuite.db.util.HttpConstants;
 import com.worksuite.rest.api.common.AuthorizationUtils;
 import com.worksuite.rest.api.common.ConfigConstants;
 
@@ -47,26 +40,32 @@ public class SecurityFilter implements Filter {
 			if(reqUri.matches("/(worksuite/)index.jsp")) {
 				String token = httpRequest.getParameter("token");
 				if(token != null) {
-					AuthorizationUtils authUtils = new AuthorizationUtils();
-					if(!authUtils.isValidToken(token)) {
+					if(!AuthorizationUtils.isValidToken(token)) {
 						httpResponse.sendRedirect("login.jsp");
 					}
 				}else {
+					LOGGER.log(Level.INFO, "Token not exist");
 					httpResponse.sendRedirect("login.jsp");	
 				}
-			}else if(apiUrlMatcher.find()) {
+			}else if(Pattern.matches("/(worksuite/)api/v\\d+/account", reqUri) && HttpConstants.POST_METHOD.equalsIgnoreCase(httpRequest.getMethod())) {
+				
+			} else if(apiUrlMatcher.find()) {
 				httpResponse.sendError(401, "UNAUTHORIZED");
 			}else if(!reqUri.matches("/(worksuite/)login.jsp")) {
 				httpResponse.sendRedirect("login.jsp");	
 			}
 		}else {
 			String token = csrfToken.split("=")[1];
-			AuthorizationUtils authUtils = new AuthorizationUtils();
-			if(!authUtils.isValidToken(token)) {
-				httpResponse.sendRedirect("login.jsp");
+			if(!AuthorizationUtils.isValidToken(token)) {
+				if((Pattern.matches("/(worksuite/)api/v\\d+/account", reqUri) && HttpConstants.POST_METHOD.equalsIgnoreCase(httpRequest.getMethod()))) {
+					
+				}else if(apiUrlMatcher.find()) {
+					httpResponse.sendError(401, "UNAUTHORIZED");
+				}else {
+					httpResponse.sendRedirect("login.jsp");
+				}
 			}
 		}
 		chain.doFilter(request, response);
 	}
-
 }

@@ -4,20 +4,33 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.worksuite.db.util.DBUtil;
+import com.worksuite.rest.api.common.ErrorCode;
+import com.worksuite.rest.api.common.RestException;
 
 public class ScopeBeanImpl implements ScopeBean {
 
+	private static final Logger LOGGER = LogManager.getLogger(IntegrationBeanImpl.class.getName());
+	
 	@Override
-	public ScopePOJO addScopeDetails(final long orgId, final long appId, ScopePOJO scopePojo) {
+	public ScopePOJO addScopeDetails(final long orgId, final long appId, ScopePOJO scopePojo) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		DBUtil dbUtil = new DBUtil();
 		ResultSet rs = null;
 		try {
 			conn = DBUtil.getConnection();
-			if(getScopeDetails(conn, orgId, appId) != null) {
-				throw new Exception("Already Exists");
+			try {
+				getScopeDetails(conn, orgId, appId);
+				throw new RestException(ErrorCode.SCOPE_ALREADY_REGISTERED);
+			}catch(RestException re) {
+				if(re.getErrorCode() == ErrorCode.SCOPE_ALREADY_REGISTERED.getErrorCode()) {
+					throw re;
+				}
 			}
 
 			String query = "INSERT INTO Scope (APP_ID, ORG_ID, LEVEL, CREATED_BY, MODIFIED_BY, CREATED_TIME, MODIFIED_TIME) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -33,45 +46,47 @@ public class ScopeBeanImpl implements ScopeBean {
 			prep.setLong(7, currentTime);
 
 			if (prep.executeUpdate() == 0) {
-				throw new Exception("Exception while add scope");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			return getScopeDetails(conn, orgId, appId);
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while addIntegDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			dbUtil.closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
 
 	@Override
-	public ScopePOJO getScopeDetails(long orgId, long appId) {
+	public ScopePOJO getScopeDetails(long orgId, long appId) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		DBUtil dbUtil = new DBUtil();
 		try {
 			conn = DBUtil.getConnection();
 			return getScopeDetails(conn, orgId, appId);
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while getScopeDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			dbUtil.closeConnection(conn, prep, null);
 		}
-		return null;
 	}
 
 	@Override
-	public ScopePOJO updateScopeDetails(long orgId, long appId, ScopePOJO scopePojo) {
+	public ScopePOJO updateScopeDetails(long orgId, long appId, ScopePOJO scopePojo) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		DBUtil dbUtil = new DBUtil();
 		ResultSet rs = null;
 		try {
 			conn = DBUtil.getConnection();
-			if(getScopeDetails(conn, orgId, appId) == null) {
-				throw new Exception("No data found");
-			}
+			getScopeDetails(conn, orgId, appId);
 
 			String query = "UPDATE Scope SET LEVEL = ?, MODIFIED_BY = ?, MODIFIED_TIME = ? WHERE ORG_ID = ? AND APP_ID = ?";
 
@@ -83,29 +98,29 @@ public class ScopeBeanImpl implements ScopeBean {
 			prep.setLong(5, appId);
 			
 			if (prep.executeUpdate() == 0) {
-				throw new Exception("Exception while update scope");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			return getScopeDetails(conn, orgId, appId);
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while updateScopeDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			dbUtil.closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
 
 	@Override
-	public boolean deleteScopeDetails(long orgId, long appId) {
+	public boolean deleteScopeDetails(long orgId, long appId) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 		try {
 			conn = DBUtil.getConnection();
 			
-			if(getScopeDetails(conn, orgId, appId) == null) {
-				throw new Exception("No data found");
-			}
+			getScopeDetails(conn, orgId, appId);
 			
 			String query = "DELETE FROM Scope WHERE ORG_ID = ? AND APP_ID = ?";
 			prep = conn.prepareStatement(query);
@@ -114,15 +129,17 @@ public class ScopeBeanImpl implements ScopeBean {
 
 			return prep.executeUpdate() != 0;
 			
+		}catch(RestException re) {
+			throw re;
 		}catch(Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.ERROR, "Exception Occured while deleteScopeDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}finally {
 			new DBUtil().closeConnection(null, prep, rs);
 		}
-		return false;
 	}
 
-	private ScopePOJO getScopeDetails(Connection conn, final long orgId, final long appId) {
+	private ScopePOJO getScopeDetails(Connection conn, final long orgId, final long appId) throws RestException {
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 		try {
@@ -132,15 +149,18 @@ public class ScopeBeanImpl implements ScopeBean {
 			prep.setLong(2, appId);
 
 			rs = prep.executeQuery();
-			if (rs.next()) {
-				return ScopePOJO.convertResultSetToPojo(rs);
+			if (!rs.next()) {
+				throw new RestException(ErrorCode.SCOPE_NOT_REGISTERED);
 			}
+			return ScopePOJO.convertResultSetToPojo(rs);
+		}catch(RestException re) {
+			throw re;
 		}catch(Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.ERROR, "Exception Occured while getScopeDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}finally {
 			new DBUtil().closeConnection(null, prep, rs);
 		}
-		return null;
 	}
 
 }

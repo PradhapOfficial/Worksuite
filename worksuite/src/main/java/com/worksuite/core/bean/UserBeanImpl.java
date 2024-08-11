@@ -8,15 +8,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.worksuite.db.util.DBUtil;
+import com.worksuite.rest.api.common.ErrorCode;
+import com.worksuite.rest.api.common.RestException;
 
 public class UserBeanImpl implements UserBean {
+	
+	private static final Logger LOGGER = LogManager.getLogger(UserBeanImpl.class);
 
 	@Override
-	public UserPOJO getUserDetails(final long userId) {
+	public UserPOJO getUserDetails(final long userId) throws RestException{
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
@@ -29,16 +37,19 @@ public class UserBeanImpl implements UserBean {
 			if (rs.next()) {
 				return UserPOJO.convertResultSetToPojo(rs);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+			throw new RestException(ErrorCode.INVALID_USER_ID);
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while getUserDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
 
 	@Override
-	public UserPOJO updateUserDetails(final long userId, UserPOJO userPojo) {
+	public UserPOJO updateUserDetails(final long userId, UserPOJO userPojo) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
@@ -78,8 +89,11 @@ public class UserBeanImpl implements UserBean {
 					return UserPOJO.convertResultSetToPojo(rs);
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while updateUserDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
@@ -87,7 +101,7 @@ public class UserBeanImpl implements UserBean {
 	}
 
 	@Override
-	public boolean deleteUserDetails(final long userId) {
+	public boolean deleteUserDetails(final long userId) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
@@ -109,8 +123,11 @@ public class UserBeanImpl implements UserBean {
 					return prep.executeUpdate(delQuery) > 0;
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while deleteUserDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
@@ -118,7 +135,7 @@ public class UserBeanImpl implements UserBean {
 	}
 
 	@Override
-	public List<UserMasterPOJO> getListOfUserDetails(long orgId){
+	public List<UserMasterPOJO> getListOfUserDetails(long orgId) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
@@ -136,16 +153,18 @@ public class UserBeanImpl implements UserBean {
 				listOfUsers.add(new UserMasterPOJO().setUserDetails(UserPOJO.convertResultSetToPojo(rs)).setOrgDetails(orgPojo));
 			}
 			return listOfUsers;
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while getListOfUserDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
 	
 	@Override
-	public UserMasterPOJO getUserDetailsById(final long userId, final long orgId) {
+	public UserMasterPOJO getUserDetailsById(final long userId, final long orgId) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
@@ -158,23 +177,25 @@ public class UserBeanImpl implements UserBean {
 
 			rs = prep.executeQuery();
 			if (!rs.next()) {
-				throw new Exception("No Row Found");
+				throw new RestException(ErrorCode.INVALID_USER_ID);
 			}
 
 			OrgPOJO orgPojo = OrgPOJO.convertResultSetToPojo(rs).setRoleDetails(RolePOJO.convertResultSetToPojo(rs));
 
 			return new UserMasterPOJO().setUserDetails(UserPOJO.convertResultSetToPojo(rs)).setOrgDetails(orgPojo);
 
+		}catch(RestException re) {
+			throw re;
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.ERROR, "Exception Occured while getUserDetailsById :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
 
 	@Override
-	public boolean addUserDetails(final long userId, final long orgId, final JsonObject newUserObj) {
+	public boolean addUserDetails(final long userId, final long orgId, final JsonObject newUserObj) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
@@ -189,12 +210,8 @@ public class UserBeanImpl implements UserBean {
 			rs = prep.executeQuery();
 
 			if (!rs.next()) {
-				throw new Exception("Invalid userId");
+				throw new RestException(ErrorCode.INVALID_USER_ID);
 			}
-			
-//			if(UserPOJO.convertResultSetToPojo(rs) == null) {
-//				throw new Exception("User not a org space");
-//			}
 			
 			dbUtil.closeConnection(rs);
 			query = new StringBuilder("SELECT ROLE_ID FROM Role WHERE ROLE_VALUE = ").append(newUserObj.get("role").getAsLong()).toString();
@@ -202,7 +219,7 @@ public class UserBeanImpl implements UserBean {
 			rs = prep.executeQuery(query);
 			
 			if(!rs.next()) {
-				throw new Exception("Invalid Role Id");
+				throw new RestException(ErrorCode.INVALID_ROLE);
 			}
 			
 			final long roleId = rs.getLong("ROLE_ID");
@@ -214,17 +231,19 @@ public class UserBeanImpl implements UserBean {
 			prep.setLong(2, newUserObj.get("userId").getAsLong());
 			prep.setLong(3, roleId);
 			return prep.executeUpdate() > 0;
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while addUserDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			dbUtil.closeConnection(conn, prep, rs);
 		}
-		return false;
 	}
 
 	@SuppressWarnings("resource")
 	@Override
-	public boolean addListOfUserDetails(long userId, long orgId, JsonArray newUsersList) {
+	public boolean addListOfUserDetails(long userId, long orgId, JsonArray newUsersList) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
@@ -241,12 +260,8 @@ public class UserBeanImpl implements UserBean {
 			rs = prep.executeQuery();
 
 			if (!rs.next()) {
-				throw new Exception("Invalid userId");
+				throw new RestException(ErrorCode.INVALID_USER_ID);
 			}
-			
-//			if(UserPOJO.convertResultSetToPojo(rs) == null) {
-//				throw new Exception("User not a org space");
-//			}
 			
 			dbUtil.closeConnection(rs);
 			
@@ -279,23 +294,15 @@ public class UserBeanImpl implements UserBean {
 			}
 			
 			int[] resultArray = prep.executeBatch();
-			int failedCount = 0;
-			int totalCount = resultArray.length;
+			return resultArray.length > 0;
 			
-			for(int res : resultArray) {
-				if(!(res == PreparedStatement.SUCCESS_NO_INFO || res >= 0)) {
-					failedCount++;
-				}
-			}
-			System.out.println("Summary total record : " + totalCount + " Success count : " + (totalCount - failedCount) + "failed Count : " + failedCount);
-			return true;
-			
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while addListOfUserDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			dbUtil.closeConnection(conn, prep, rs);
 		}
-		return false;
 	}
-
 }

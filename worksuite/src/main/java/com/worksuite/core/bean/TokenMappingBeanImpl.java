@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,7 +20,7 @@ public class TokenMappingBeanImpl implements TokenMappingBean {
 		try {
 			return getToken(conn, userId, token);
 		}catch(Exception e) {
-			LOGGER.error("Exception Occured while getToken :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while getToken :: ", e);
 		} finally {
 			new DBUtil().closeConnection(conn);
 		}
@@ -71,7 +72,7 @@ public class TokenMappingBeanImpl implements TokenMappingBean {
 			
 			LOGGER.info("No Rows Found");
 		}catch(Exception e) {
-			LOGGER.error("Exception Occured while addToken :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while addToken :: ", e);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, null);
 		}
@@ -110,7 +111,7 @@ public class TokenMappingBeanImpl implements TokenMappingBean {
 			
 			LOGGER.info("Unable to delete the row");
 		}catch(Exception e) {
-			LOGGER.error("Exception Occured while deleteToken :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while deleteToken :: ", e);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, null);
 		}

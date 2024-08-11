@@ -1,3 +1,5 @@
+<%@page import="com.worksuite.rest.api.common.ErrorCode"%>
+<%@page import="com.worksuite.rest.api.common.RestException"%>
 <%@page import="com.worksuite.core.bean.TokenMappingBeanImpl"%>
 <%@page import="com.worksuite.core.bean.TokenMappingBean"%>
 <%@page import="com.worksuite.core.bean.TokenMappingPojo"%>
@@ -57,30 +59,32 @@
    		
    		if(userName != null && passWord != null){
    			AccountsBean accountBean = new AccountsBeanImpl();
-			UserPOJO userPojo = accountBean.getAccountDetails(userName, passWord);
-			if(userPojo == null){
-				out.println("Invalid user name and password");
-				return;
-			}
-			
-			long userId = userPojo.getUserId();
-			AuthorizationUtils authUtils = new AuthorizationUtils();
-			String token = authUtils.getToken(userPojo.toString());
-			
-			TokenMappingPojo tokenMappingPojo = new TokenMappingPojo().setUserId(userId).setToken(token);
-			
-			TokenMappingBean tokenMappingBean = new TokenMappingBeanImpl();
-			if((tokenMappingPojo = tokenMappingBean.addToken(tokenMappingPojo)) == null) {
-				httpResponse.sendError(401, "UNAUTHORIZED");
-				return;
-			}
-			
-			StringBuilder tokenBuilder = new StringBuilder(ConfigConstants.WS_CSRF_BEARER);
-			tokenBuilder.append(token);
-			
-			response.addHeader(ConfigConstants.X_CSRF_TOKEN, tokenBuilder.toString());
-			//request.getRequestDispatcher("index.jsp").forward(request, response);
-			httpResponse.sendRedirect("index.jsp?token=" + token);
-   		}
+   			UserPOJO userPojo = null;
+   			try{
+   				userPojo = accountBean.getAccountDetails(userName, passWord);
+   				long userId = userPojo.getUserId();
+   				AuthorizationUtils authUtils = new AuthorizationUtils();
+   				String token = authUtils.getToken(String.valueOf(userId));
+   				
+   				TokenMappingPojo tokenMappingPojo = new TokenMappingPojo().setUserId(userId).setToken(token);
+   				
+   				TokenMappingBean tokenMappingBean = new TokenMappingBeanImpl();
+   				if((tokenMappingPojo = tokenMappingBean.addToken(tokenMappingPojo)) == null) {
+   					httpResponse.sendError(401, "UNAUTHORIZED");
+   					return;
+   				}
+   				
+   				StringBuilder tokenBuilder = new StringBuilder(ConfigConstants.WS_CSRF_BEARER);
+   				tokenBuilder.append(token);
+   				
+   				response.addHeader(ConfigConstants.X_CSRF_TOKEN, tokenBuilder.toString());
+   				//request.getRequestDispatcher("index.jsp").forward(request, response);
+   				httpResponse.sendRedirect("index.jsp?token=" + token);
+   			}catch(RestException e){
+   				if(e.getErrorCode() == ErrorCode.INVALID_EMAIL_ID_AND_PASSWORD.getErrorCode()){
+   					out.println("Invalid user name and password");
+   		   		}
+   			}
+		}
    %>
 </html>

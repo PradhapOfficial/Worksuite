@@ -19,7 +19,6 @@ import com.google.gson.JsonObject;
 import com.worksuite.core.bean.OrgBean;
 import com.worksuite.core.bean.OrgBeanImpl;
 import com.worksuite.core.bean.OrgPOJO;
-import com.worksuite.integration.rest.api.ScopeAPI;
 import com.worksuite.rest.api.common.APIUtil;
 import com.worksuite.rest.api.common.ErrorCode;
 import com.worksuite.rest.api.common.RestException;
@@ -41,7 +40,7 @@ public class OrgAPI extends APIUtil {
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while getOrgDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while getOrgDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 		
@@ -63,7 +62,7 @@ public class OrgAPI extends APIUtil {
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while updateOrgDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while updateOrgDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 		
@@ -85,7 +84,7 @@ public class OrgAPI extends APIUtil {
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while addOrgDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while addOrgDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 		
@@ -107,7 +106,7 @@ public class OrgAPI extends APIUtil {
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while deleteOrgDetails :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while deleteOrgDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 		

@@ -4,12 +4,20 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.worksuite.db.util.DBUtil;
+import com.worksuite.rest.api.common.ErrorCode;
+import com.worksuite.rest.api.common.RestException;
 
 public class AccountsBeanImpl implements AccountsBean {
+	
+	private static final Logger LOGGER = LogManager.getLogger(AccountsBeanImpl.class);
 
 	@Override
-	public UserPOJO addAccountDetails(AccountsPOJO accountsPojo, UserPOJO userPojo) {
+	public UserPOJO addAccountDetails(AccountsPOJO accountsPojo, UserPOJO userPojo) throws RestException {
 		DBUtil dbUtil = new DBUtil();
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
@@ -24,7 +32,7 @@ public class AccountsBeanImpl implements AccountsBean {
 			preparedStatement.setString(2, accountsPojo.getPassWord());
 
 			if (preparedStatement.executeUpdate() == 0) {
-				throw new Exception("Unable to insert");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			dbUtil.closeConnection(preparedStatement);
@@ -37,7 +45,7 @@ public class AccountsBeanImpl implements AccountsBean {
 			preparedStatement.setString(3, userPojo.getEmailId());
 
 			if (preparedStatement.executeUpdate() == 0) {
-				throw new Exception("Unable to insert");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			dbUtil.closeConnection(preparedStatement);
@@ -48,20 +56,22 @@ public class AccountsBeanImpl implements AccountsBean {
 
 			resultSet = preparedStatement.executeQuery();
 			if (!resultSet.next()) {
-				throw new Exception("Unable to insert");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			return UserPOJO.convertResultSetToPojo(resultSet);
-		} catch (Exception e) {
-			System.out.println("Exception occure while addAccountDetails bean impl :: " + e);
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while addAccountDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			dbUtil.closeConnection(connection, preparedStatement, resultSet);
 		}
-		return null;
 	}
 
 	@Override
-	public boolean updateAccountDetails(AccountsPOJO accountsPojo) {
+	public boolean updateAccountDetails(AccountsPOJO accountsPojo) throws RestException {
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -72,8 +82,10 @@ public class AccountsBeanImpl implements AccountsBean {
 			preparedStatement = connection.prepareStatement(query);
 			preparedStatement.setString(1, accountsPojo.getPassWord());
 			return (preparedStatement.executeUpdate() > 0) ? true : false;
-		} catch (Exception e) {
-			System.out.println("Exception occure while updateAccountDetails bean impl :: " + e);
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while updateAccountDetails :: ", e);
 		} finally {
 			new DBUtil().closeConnection(connection, preparedStatement, resultSet);
 		}
@@ -81,7 +93,7 @@ public class AccountsBeanImpl implements AccountsBean {
 	}
 
 	@Override
-	public boolean deleteAccountDetails(String emailId) {
+	public boolean deleteAccountDetails(String emailId) throws RestException {
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -92,8 +104,10 @@ public class AccountsBeanImpl implements AccountsBean {
 			preparedStatement = connection.prepareStatement(query);
 			preparedStatement.setString(1, emailId);
 			return (preparedStatement.executeUpdate() > 0) ? true : false;
-		} catch (Exception e) {
-			System.out.println("Exception occure while deleteAccountDetails bean impl :: " + e);
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while deleteAccountDetails :: ", e);
 		} finally {
 			new DBUtil().closeConnection(connection, preparedStatement, resultSet);
 		}
@@ -101,7 +115,7 @@ public class AccountsBeanImpl implements AccountsBean {
 	}
 
 	@Override
-	public boolean isAccountExists(String emailId) {
+	public boolean isAccountExists(String emailId) throws RestException {
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -116,8 +130,10 @@ public class AccountsBeanImpl implements AccountsBean {
 			if (resultSet.next()) {
 				return true;
 			}
-		} catch (Exception e) {
-			System.out.println("Exception occure while isAccountExists bean impl :: " + e);
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while isAccountExists :: ", e);
 		} finally {
 			new DBUtil().closeConnection(connection, preparedStatement, resultSet);
 		}
@@ -125,7 +141,7 @@ public class AccountsBeanImpl implements AccountsBean {
 	}
 
 	@Override
-	public UserPOJO getAccountDetails(String emailId, String password) {
+	public UserPOJO getAccountDetails(String emailId, String password) throws RestException {
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
@@ -139,15 +155,17 @@ public class AccountsBeanImpl implements AccountsBean {
 
 			resultSet = preparedStatement.executeQuery();
 			if (!resultSet.next()) {
-				throw new Exception("No row Found");
+				throw new RestException(ErrorCode.INVALID_EMAIL_ID_AND_PASSWORD);
 			}
 
 			return UserPOJO.convertResultSetToPojo(resultSet);
+		}catch(RestException re) {
+			throw re;
 		} catch (Exception e) {
-			System.out.println("Exception occure while getAccountDetails bean impl :: " + e);
+			LOGGER.log(Level.ERROR, "Exception occured while getAccountDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(connection, preparedStatement, resultSet);
 		}
-		return null;
 	}
 }

@@ -1,4 +1,4 @@
--- USE worksuite;
+USE worksuite;
 
 DELIMITER $$
 CREATE TRIGGER IF NOT EXISTS Generate_Account_PK BEFORE INSERT ON Accounts
@@ -137,34 +137,34 @@ BEGIN
             SET generatedValue = FLOOR(500000 + RAND() * (500100 - 500000));
         
         WHEN 'Scope' THEN
-            SET generatedValue = FLOOR(6000000000 + RAND() * (9999999999 - 6000000000));
+            SET generatedValue = FLOOR(500200 + RAND() * (599999 - 500200));
         
         WHEN 'Integration' THEN
-            SET generatedValue = FLOOR(60000000000 + RAND() * (99999999999 - 60000000000));
+            SET generatedValue = FLOOR(60000000 + RAND() * (69999999 - 60000000));
         
         WHEN 'Department' THEN
-            SET generatedValue = FLOOR(600000000000 + RAND() * (999999999999 - 600000000000));
+            SET generatedValue = FLOOR(70000000 + RAND() * (79999999 - 70000000));
         
         WHEN 'DepartmentUserMapping' THEN
-            SET generatedValue = FLOOR(60000000000000 + RAND() * (99999999999999 - 60000000000000));
+            SET generatedValue = FLOOR(80000000 + RAND() * (89999999 - 80000000));
        
         WHEN 'IntegrationDepartmentMapping' THEN
-            SET generatedValue = FLOOR(600000000000000 + RAND() * (999999999999999 - 60000000000000));
+            SET generatedValue = FLOOR(90000000 + RAND() * (99999999 - 90000000));
        
         WHEN 'IntegrationUserMapping' THEN
-            SET generatedValue = FLOOR(6000000000000000 + RAND() * (9999999999999999 - 60000000000000));
+            SET generatedValue = FLOOR(20000000 + RAND() * (29999999 - 20000000));
        
         WHEN 'OrganizationUserMapping' THEN
-            SET generatedValue = FLOOR(60000000000000000 + RAND() * (99999999999999999 - 600000000000000));
+            SET generatedValue = FLOOR(30000000 + RAND() * (39999999 - 30000000));
        
         WHEN 'Auth' THEN
-            SET generatedValue = FLOOR(600000000000000000 + RAND() * (999999999999999999 - 6000000000000000));
+            SET generatedValue = FLOOR(40000000 + RAND() * (49999999 - 40000000));
         
         WHEN 'IntegrationProperty' THEN
-            SET generatedValue = FLOOR(5000000000 + RAND() * (5999999999 - 5000000000));
+            SET generatedValue = FLOOR(50000000 + RAND() * (59999999 - 50000000));
 
         WHEN 'IntegrationOrgMapping' THEN
-            SET generatedValue = FLOOR(600000000000000000 + RAND() * (999999999999999999 - 6000000000000000));
+            SET generatedValue = FLOOR(10000000 + RAND() * (19999999 - 10000000));
        
         WHEN 'TokenMapping' THEN
             SET generatedValue = FLOOR(400000000 + RAND() * (500000000 - 400000000));
