@@ -36,14 +36,18 @@
 			
 		}
 	}
+	boolean isDevelopment = ApplicationUtils.isDevelopment();
+	String staticURL = (isDevelopment ? "http://localhost:3001/static/js/bundle.js" : "static/react-client.js");
 %>
 <script>
-	var isDevelopment = <%=ApplicationUtils.isDevelopment()%>;
+	var isDevelopment = <%=isDevelopment%>;
 	var token = "<%=token%>"
 	var orgId = "<%=orgId%>"
 	var userId = "<%=userId%>"
+	
 </script>
 	<div id="worksuiteMainContainer" style="height:100%;weight:100%"></div>
-	<script src="http://localhost:3001/static/js/bundle.js" type="text/javascript"></script>
+	
+	<script src="<%=staticURL%>" type="text/javascript"></script>
 </body>
 </html>

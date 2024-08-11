@@ -33,11 +33,47 @@ public class SecurityFilter implements Filter {
 		String csrfToken = httpRequest.getHeader(ConfigConstants.X_CSRF_TOKEN);
 		String reqUri = httpRequest.getRequestURI();
 		
-		Pattern urlPattern = Pattern.compile("/(worksuite/)api/v");
+//		Pattern urlPattern = Pattern.compile("/(worksuite/)api/v");
+//		Matcher apiUrlMatcher = urlPattern.matcher(reqUri);
+//		
+//		if(!Pattern.matches("/(worksuite/)static/react-client.js", reqUri) && csrfToken == null) {
+//			if(reqUri.matches("/(worksuite/)index.jsp")) {
+//				String token = httpRequest.getParameter("token");
+//				if(token != null) {
+//					if(!AuthorizationUtils.isValidToken(token)) {
+//						httpResponse.sendRedirect("login.jsp");
+//					}
+//				}else {
+//					LOGGER.log(Level.INFO, "Token not exist");
+//					httpResponse.sendRedirect("login.jsp");	
+//				}
+//			}else if(Pattern.matches("/(worksuite/)api/v\\d+/account", reqUri) && HttpConstants.POST_METHOD.equalsIgnoreCase(httpRequest.getMethod())) {
+//				
+//			} else if(apiUrlMatcher.find()) {
+//				httpResponse.sendError(401, "UNAUTHORIZED");
+//			}else if(!reqUri.matches("/(worksuite/)login.jsp")) {
+//				httpResponse.sendRedirect("login.jsp");	
+//			}
+//		}else {
+//			if(!Pattern.matches("/(worksuite/)static/react-client.js", reqUri)) {
+//				String token = csrfToken.split("=")[1];
+//				if(!AuthorizationUtils.isValidToken(token)) {
+//					if((Pattern.matches("/(worksuite/)api/v\\d+/account", reqUri) && HttpConstants.POST_METHOD.equalsIgnoreCase(httpRequest.getMethod()))) {
+//						
+//					}else if(apiUrlMatcher.find()) {
+//						httpResponse.sendError(401, "UNAUTHORIZED");
+//					}else {
+//						httpResponse.sendRedirect("login.jsp");
+//					}
+//				}
+//			}
+//		}
+		
+		Pattern urlPattern = Pattern.compile("/api/v");
 		Matcher apiUrlMatcher = urlPattern.matcher(reqUri);
 		
-		if(csrfToken == null) {
-			if(reqUri.matches("/(worksuite/)index.jsp")) {
+		if(!Pattern.matches("/static/react-client.js", reqUri) && csrfToken == null) {
+			if(reqUri.matches("/index.jsp")) {
 				String token = httpRequest.getParameter("token");
 				if(token != null) {
 					if(!AuthorizationUtils.isValidToken(token)) {
@@ -47,22 +83,24 @@ public class SecurityFilter implements Filter {
 					LOGGER.log(Level.INFO, "Token not exist");
 					httpResponse.sendRedirect("login.jsp");	
 				}
-			}else if(Pattern.matches("/(worksuite/)api/v\\d+/account", reqUri) && HttpConstants.POST_METHOD.equalsIgnoreCase(httpRequest.getMethod())) {
+			}else if(Pattern.matches("/api/v\\d+/account", reqUri) && HttpConstants.POST_METHOD.equalsIgnoreCase(httpRequest.getMethod())) {
 				
 			} else if(apiUrlMatcher.find()) {
 				httpResponse.sendError(401, "UNAUTHORIZED");
-			}else if(!reqUri.matches("/(worksuite/)login.jsp")) {
+			}else if(!reqUri.matches("/login.jsp")) {
 				httpResponse.sendRedirect("login.jsp");	
 			}
 		}else {
-			String token = csrfToken.split("=")[1];
-			if(!AuthorizationUtils.isValidToken(token)) {
-				if((Pattern.matches("/(worksuite/)api/v\\d+/account", reqUri) && HttpConstants.POST_METHOD.equalsIgnoreCase(httpRequest.getMethod()))) {
-					
-				}else if(apiUrlMatcher.find()) {
-					httpResponse.sendError(401, "UNAUTHORIZED");
-				}else {
-					httpResponse.sendRedirect("login.jsp");
+			if(!Pattern.matches("/static/react-client.js", reqUri)) {
+				String token = csrfToken.split("=")[1];
+				if(!AuthorizationUtils.isValidToken(token)) {
+					if((Pattern.matches("/api/v\\d+/account", reqUri) && HttpConstants.POST_METHOD.equalsIgnoreCase(httpRequest.getMethod()))) {
+						
+					}else if(apiUrlMatcher.find()) {
+						httpResponse.sendError(401, "UNAUTHORIZED");
+					}else {
+						httpResponse.sendRedirect("login.jsp");
+					}
 				}
 			}
 		}
