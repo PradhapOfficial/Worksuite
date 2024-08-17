@@ -26,9 +26,6 @@ import com.worksuite.integration.bean.IntegrationBeanImpl;
 import com.worksuite.integration.bean.IntegrationMasterPOJO;
 import com.worksuite.integration.bean.IntegrationPOJO;
 import com.worksuite.integration.bean.IntegrationPropertyPOJO;
-import com.worksuite.integration.bean.ScopeBean;
-import com.worksuite.integration.bean.ScopeBeanImpl;
-import com.worksuite.integration.bean.ScopePOJO;
 import com.worksuite.rest.api.common.APIUtil;
 import com.worksuite.rest.api.common.ErrorCode;
 import com.worksuite.rest.api.common.RestException;
@@ -44,7 +41,6 @@ public class IntegrationAPI extends APIUtil {
 	@Produces(MediaType.APPLICATION_JSON)
 	public IntegrationMasterPOJO addIntegDetails(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId, String jsonStr) throws RestException {
 		try {
-			
 			isValidAppId(appId);
 			isUserPresentInOrg(orgId, userId);
 			isScopeRegistered(orgId, appId);
@@ -66,12 +62,13 @@ public class IntegrationAPI extends APIUtil {
 				listOfintegPropPojo.add(integPropPojo);
 			}
 			
-			ScopeBean scopeBean = new ScopeBeanImpl();
-			ScopePOJO scopePojo = scopeBean.getScopeDetails(orgId, appId);
-			integPojo.setLevel(scopePojo.getLevel());
+			integPojo.setLevel(getScopePojo().getLevel());
+			
+			int level = getScopePojo().getLevel();
+			long uniqueId = APIUtil.getUniqueIdByLevel(level, orgId, null, userId);
 			
 			IntegrationBean integBean = new IntegrationBeanImpl();
-			return integBean.addIntegDetails(orgId, userId, null, integPojo, authPojo, listOfintegPropPojo);
+			return integBean.addIntegDetails(orgId, uniqueId, integPojo, authPojo, listOfintegPropPojo);
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
@@ -89,10 +86,9 @@ public class IntegrationAPI extends APIUtil {
 			isValidAppId(appId);
 			isUserPresentInOrg(orgId, userId);
 			isScopeRegistered(orgId, appId);
-			isValidIntegId(integrationId);
+			isValidIntegId(orgId, integrationId);
 			
-			IntegrationBean integBean = new IntegrationBeanImpl();
-			return integBean.getIntegDetails(integrationId, getScopePojo().getLevel());
+			return getIntegrationMasterPOJO();
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
@@ -105,18 +101,54 @@ public class IntegrationAPI extends APIUtil {
 	@Path("{appId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public IntegrationMasterPOJO getIntegDetailsByAppId(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId) throws RestException {
+	public IntegrationMasterPOJO getIntegDetailsByScope(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId) throws RestException {
 		try {
 			isValidAppId(appId);
 			isUserPresentInOrg(orgId, userId);
 			isScopeRegistered(orgId, appId);
 			
+			int level = getScopePojo().getLevel();
+			long uniqueId = APIUtil.getUniqueIdByLevel(level, orgId, null, userId);
+			
 			IntegrationBean integBean = new IntegrationBeanImpl();
-			return integBean.getIntegDetailsByLevel(userId, getScopePojo().getLevel());
+			return integBean.getIntegDetailsByLevel(orgId, uniqueId, level);
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
 			LOGGER.log(Level.ERROR, "Exception Occured while getIntegDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@DELETE
+	@Path("{appId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public String deleteIntegDetailsByScope(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId) throws RestException {
+		try {
+			isValidAppId(appId);
+			isUserPresentInOrg(orgId, userId);
+			isScopeRegistered(orgId, appId);
+			
+			int level = getScopePojo().getLevel();
+			long uniqueId = APIUtil.getUniqueIdByLevel(level, orgId, null, userId);
+			
+			IntegrationBean integBean = new IntegrationBeanImpl();
+			IntegrationMasterPOJO integrationMasterPojo =  integBean.getIntegDetailsByLevel(orgId, uniqueId, level);
+			
+			long integrationId = integrationMasterPojo.getIntegrationDetails().getIntegrationId();
+			boolean deleteStatus = integBean.deleteIntegnDetails(orgId, userId, integrationId);
+			
+			JsonObject resultJson = new JsonObject();
+			resultJson.addProperty("status", false);
+			if(deleteStatus) {
+				resultJson.addProperty("status", true);
+			}
+			return resultJson.toString();
+		}catch(RestException re) {
+			throw re;
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while deleteIntegDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -130,7 +162,7 @@ public class IntegrationAPI extends APIUtil {
 			isValidAppId(appId);
 			isUserPresentInOrg(orgId, userId);
 			isScopeRegistered(orgId, appId);
-			isValidIntegId(integrationId);
+			isValidIntegId(orgId, integrationId);
 			
 			IntegrationBean integBean = new IntegrationBeanImpl();
 			boolean deleteStatus = integBean.deleteIntegnDetails(orgId, userId, integrationId);

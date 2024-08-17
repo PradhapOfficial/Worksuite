@@ -33,7 +33,7 @@ public class GeminiAIAPI extends APIUtil{
 	public String getChat(@PathParam("orgId") long orgId, @PathParam("integrationId") long integrationId, String payloadStr) throws RestException {
 		try {
 			isScopeRegistered(orgId, IntegrationConstants.Apps.GEMINI_AI_APP_ID.getValue());
-			isValidIntegId(integrationId);
+			isValidIntegId(orgId, integrationId);
 			
 			JsonObject payloadJson = new Gson().fromJson(payloadStr, JsonObject.class);
 			IntegrationMasterPOJO integrationMasterPojo = this.getIntegrationMasterPOJO();

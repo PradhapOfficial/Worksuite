@@ -32,7 +32,7 @@ public class OpenAIAPI extends APIUtil {
 	public String getChat(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId, @PathParam("integrationId") long integrationId, String jsonStr) throws RestException {
 		try {
 			isScopeRegistered(orgId, appId);
-			isValidIntegId(integrationId);
+			isValidIntegId(orgId, integrationId);
 			LOGGER.log(Level.INFO, "Data while getChat called :: ");
 			IntegrationMasterPOJO integrationMasterPOJO = getIntegrationMasterPOJO();
 			

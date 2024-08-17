@@ -41,9 +41,9 @@ public class APIUtil {
 		return true;
 	}
 	
-	public boolean isValidIntegId(long integId) throws RestException {
+	public boolean isValidIntegId(long orgId, long integId) throws RestException {
 		IntegrationBean integBean = new IntegrationBeanImpl();
-		this.integrationMasterPOJO = integBean.getIntegDetails(integId, scopePojo.getLevel());
+		this.integrationMasterPOJO = integBean.getIntegDetails(orgId, integId, scopePojo.getLevel());
 	
 		if(integrationMasterPOJO == null) {
 			throw new RestException(ErrorCode.INVALID_INTEGRATION_ID);
@@ -92,5 +92,13 @@ public class APIUtil {
 	
 	public UserPOJO getUserPojo() {
 		return this.userPojo;
+	}
+	
+	public static long getUniqueIdByLevel(int level, Long orgId, Long departmentId, Long userId) {
+		switch(level) {
+			case 1: return orgId;
+			case 2: return departmentId;
+			default: return userId;
+		}
 	}
 }
