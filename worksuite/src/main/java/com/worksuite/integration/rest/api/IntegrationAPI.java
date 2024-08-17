@@ -45,8 +45,10 @@ public class IntegrationAPI extends APIUtil {
 			isUserPresentInOrg(orgId, userId);
 			isScopeRegistered(orgId, appId);
 			
+			int level = getScopePojo().getLevel();
 			JsonObject jsonObj = new Gson().fromJson(jsonStr, JsonObject.class);
-			IntegrationPOJO integPojo = new IntegrationPOJO(jsonObj.get("integDetails").getAsJsonObject())
+			IntegrationPOJO integPojo = new IntegrationPOJO()
+					.setLevel(level)
 					.setAppId(appId)
 					.setStatus(true)
 					.setOrgId(orgId)
@@ -62,9 +64,6 @@ public class IntegrationAPI extends APIUtil {
 				listOfintegPropPojo.add(integPropPojo);
 			}
 			
-			integPojo.setLevel(getScopePojo().getLevel());
-			
-			int level = getScopePojo().getLevel();
 			long uniqueId = APIUtil.getUniqueIdByLevel(level, orgId, null, userId);
 			
 			IntegrationBean integBean = new IntegrationBeanImpl();

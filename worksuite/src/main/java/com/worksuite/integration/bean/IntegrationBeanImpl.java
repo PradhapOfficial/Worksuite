@@ -27,9 +27,11 @@ public class IntegrationBeanImpl implements IntegrationBean {
 		try {
 			conn = DBUtil.getConnection();
 			
-			IntegrationMasterPOJO integrationMasterPOJO = getDetails(conn, orgId, uniqueId, integrationPojo);
-			if(integrationMasterPOJO.getAuthDetails() != null) {
-				return integrationMasterPOJO;
+			int level = integrationPojo.getLevel();
+			try {
+				return getIntegrationDetailsByScope(conn, orgId, uniqueId, getQueryByLevel(level));
+			}catch(RestException re) {
+				LOGGER.log(Level.INFO, "Proceed to addIntegDetails :: ");
 			}
 			
 			String query = "INSERT INTO Integration (APP_ID, STATUS, ORG_ID, LEVEL, CREATED_BY, MODIFIED_BY, CREATED_TIME, MODIFIED_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -51,7 +53,6 @@ public class IntegrationBeanImpl implements IntegrationBean {
 				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 			
-			int level = integrationPojo.getLevel();
 			integrationPojo = getDetailsIntegDetails(conn, integrationPojo);
 			addToTables(conn, uniqueId, integrationPojo.getIntegrationId(), level, authPojo, listOfIntegPropPojo);
 			return getIntegrationDetailsByScope(conn, orgId, integrationPojo.getIntegrationId(), getIntegrationIdQueryByLevel(level));
@@ -232,52 +233,6 @@ public class IntegrationBeanImpl implements IntegrationBean {
 			new DBUtil().closeConnection(null, prep, rs);
 		}
 		return null;
-	}
-	
-	private IntegrationMasterPOJO getDetails(Connection conn, long orgId, long uniqueId, IntegrationPOJO integrationPojo) throws RestException{
-		String query = null;
-		PreparedStatement prep = null; 
-		ResultSet rs = null;
-		int level = integrationPojo.getLevel();
-		try {
-			if(level == 1) {
-				query = "SELECT * FROM IntegrationOrgMapping INNER JOIN Integration ON IntegrationOrgMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.ORG_ID = ? AND IntegrationOrgMapping.ORG_ID = ? AND Integration.APP_ID = ? AND Integration.LEVEL = ?";
-			}else if(level == 2) {
-				query = "SELECT * FROM IntegrationDepartmentMapping INNER JOIN Integration ON IntegrationDepartmentMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.ORG_ID = ? AND IntegrationDepartmentMapping.DEPARTMENT_ID = ? AND Integration.APP_ID = ? AND Integration.LEVEL = ?";
-			}else{
-				query = "SELECT * FROM IntegrationUserMapping INNER JOIN Integration ON IntegrationUserMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.ORG_ID = ? AND IntegrationUserMapping.USER_ID = ? AND Integration.APP_ID = ? AND Integration.LEVEL = ?";
-			}
-			
-			prep = conn.prepareStatement(query);
-			prep.setLong(1, orgId);
-			prep.setLong(2, uniqueId);
-			prep.setLong(3, integrationPojo.getAppId());
-			prep.setLong(4, integrationPojo.getLevel());
-			rs = prep.executeQuery();
-		
-			List<IntegrationPropertyPOJO> listOfIntegProperty = new ArrayList<IntegrationPropertyPOJO>(rs.getFetchSize());
-			AuthPOJO authPojo = null;
-			if(rs.next()) {
-				integrationPojo =  IntegrationPOJO.convertResultSetToPojo(rs);
-				authPojo = AuthPOJO.convertResultSetToPojo(rs);
-				listOfIntegProperty.add(IntegrationPropertyPOJO.convertResultSetToPojo(rs));
-			}
-			
-			while(rs.next()) {
-				listOfIntegProperty.add(IntegrationPropertyPOJO.convertResultSetToPojo(rs));
-			}
-			return  new IntegrationMasterPOJO()
-					.setIntegrationDetails(integrationPojo)
-					.setAuthDetails(authPojo)
-					.setPropertyDetails(listOfIntegProperty);
-		}catch(RestException re) {
-			throw re;
-		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception Occured while getDetails :: ", e);
-			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
-		}finally {
-			new DBUtil().closeConnection(null, prep, rs);
-		}
 	}
 	
 	private boolean addToTables(Connection conn, final long uniqueId,  final long integrationId, final int level, AuthPOJO authPojo, List<IntegrationPropertyPOJO> listOfIntegPropPojo) throws RestException{
