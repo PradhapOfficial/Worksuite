@@ -81,36 +81,6 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE TRIGGER IF NOT EXISTS Generate_IntegrationUserMapping_PK BEFORE INSERT ON IntegrationUserMapping
-FOR EACH ROW
-BEGIN
-    DECLARE generatedValue BIGINT;  
-    CALL Generate_PK_Procedure('IntegrationUserMapping', generatedValue);
-    SET NEW.INTEGRATION_USER_MAPPING_ID = generatedValue;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER IF NOT EXISTS Generate_IntegrationDepartmentMapping_PK BEFORE INSERT ON IntegrationDepartmentMapping
-FOR EACH ROW
-BEGIN
-    DECLARE generatedValue BIGINT;  
-    CALL Generate_PK_Procedure('IntegrationDepartmentMapping', generatedValue);
-    SET NEW.INTEGRATION_DEPARTMENT_MAPPING_ID = generatedValue;
-END$$
-DELIMITER ;
-
-DELIMITER $$
-CREATE TRIGGER IF NOT EXISTS Generate_IntegrationOrgMapping_PK BEFORE INSERT ON IntegrationOrgMapping
-FOR EACH ROW
-BEGIN
-    DECLARE generatedValue BIGINT;  
-    CALL Generate_PK_Procedure('IntegrationOrgMapping', generatedValue);
-    SET NEW.INTEGRATION_ORG_MAPPING_ID = generatedValue;
-END$$
-DELIMITER ;
-
-DELIMITER $$
 CREATE TRIGGER IF NOT EXISTS Generate_TokenMapping_PK BEFORE INSERT ON TokenMapping
 FOR EACH ROW
 BEGIN
@@ -148,12 +118,6 @@ BEGIN
         WHEN 'DepartmentUserMapping' THEN
             SET generatedValue = FLOOR(80000000 + RAND() * (89999999 - 80000000));
        
-        WHEN 'IntegrationDepartmentMapping' THEN
-            SET generatedValue = FLOOR(90000000 + RAND() * (99999999 - 90000000));
-       
-        WHEN 'IntegrationUserMapping' THEN
-            SET generatedValue = FLOOR(20000000 + RAND() * (29999999 - 20000000));
-       
         WHEN 'OrganizationUserMapping' THEN
             SET generatedValue = FLOOR(30000000 + RAND() * (39999999 - 30000000));
        
@@ -163,9 +127,6 @@ BEGIN
         WHEN 'IntegrationProperty' THEN
             SET generatedValue = FLOOR(50000000 + RAND() * (59999999 - 50000000));
 
-        WHEN 'IntegrationOrgMapping' THEN
-            SET generatedValue = FLOOR(10000000 + RAND() * (19999999 - 10000000));
-       
         WHEN 'TokenMapping' THEN
             SET generatedValue = FLOOR(400000000 + RAND() * (500000000 - 400000000));
     END CASE;

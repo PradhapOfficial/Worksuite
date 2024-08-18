@@ -18,8 +18,6 @@ public class IntegrationPOJO {
 	
 	private Long orgId;
 	
-	private Integer level;
-	
 	private Long createdBy;
 	
 	private Long modifiedBy;
@@ -27,7 +25,10 @@ public class IntegrationPOJO {
 	private Long createdTime;
 	
 	private Long modifiedTime;
+	
+	private Long departmentId;
 
+	private Long userId;
 	
 	public IntegrationPOJO() {}
 	
@@ -49,10 +50,6 @@ public class IntegrationPOJO {
 			this.orgId = jsonObj.get("orgId").getAsLong();
 		}
 		
-		if(jsonObj.has("level")) {
-			this.level = jsonObj.get("level").getAsInt();
-		}
-		
 		if(jsonObj.has("createdBy")) {
 			this.createdBy = jsonObj.get("createdBy").getAsLong();
 		}
@@ -67,6 +64,14 @@ public class IntegrationPOJO {
 		
 		if(jsonObj.has("modifiedTime")) {
 			this.modifiedTime = jsonObj.get("modifiedTime").getAsLong();
+		}
+		
+		if(jsonObj.has("departmentId")) {
+			this.departmentId = jsonObj.get("departmentId").getAsLong();
+		}
+		
+		if(jsonObj.has("userId")) {
+			this.userId = jsonObj.get("userId").getAsLong();
 		}
 	}
 	
@@ -106,15 +111,6 @@ public class IntegrationPOJO {
 		return this;
 	}
 
-	public Integer getLevel() {
-		return level;
-	}
-
-	public IntegrationPOJO setLevel(Integer level) {
-		this.level = level;
-		return this;
-	}
-
 	public Long getCreatedBy() {
 		return createdBy;
 	}
@@ -151,6 +147,24 @@ public class IntegrationPOJO {
 		return this;
 	}
 	
+	public Long getDepartmentId() {
+		return departmentId;
+	}
+
+	public IntegrationPOJO setDepartmentId(Long departmentId) {
+		this.departmentId = departmentId;
+		return this;
+	}
+
+	public Long getUserId() {
+		return userId;
+	}
+
+	public IntegrationPOJO setUserId(Long userId) {
+		this.userId = userId;
+		return this;
+	}
+
 	public static IntegrationPOJO convertResultSetToPojo(ResultSet rs) throws SQLException {
 		ResultSetMetaData rMeta = rs.getMetaData();
 		DBUtil dbUtil = new DBUtil();
@@ -172,10 +186,6 @@ public class IntegrationPOJO {
 			integrationPojo.setOrgId(rs.getLong("ORG_ID"));
 		}
 		
-		if(dbUtil.hasColumn(rMeta, "LEVEL")) {
-			integrationPojo.setLevel(rs.getInt("LEVEL"));
-		}
-		
 		if(dbUtil.hasColumn(rMeta, "CREATED_BY")) {
 			integrationPojo.setCreatedBy(rs.getLong("CREATED_BY"));
 		}
@@ -190,6 +200,14 @@ public class IntegrationPOJO {
 		
 		if(dbUtil.hasColumn(rMeta, "MODIFIED_TIME")) {
 			integrationPojo.setModifiedTime(rs.getLong("MODIFIED_TIME"));
+		}
+		
+		if(dbUtil.hasColumn(rMeta, "DEPARTMENT_ID") && rs.getLong("DEPARTMENT_ID") != 0) {
+			integrationPojo.setDepartmentId(rs.getLong("DEPARTMENT_ID"));
+		}
+		
+		if(dbUtil.hasColumn(rMeta, "USER_ID") && rs.getLong("USER_ID") != 0) {
+			integrationPojo.setUserId(rs.getLong("USER_ID"));
 		}
 		return integrationPojo;
 	}

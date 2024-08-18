@@ -30,7 +30,13 @@ public enum ErrorCode {
 	
 	SCOPE_ALREADY_REGISTERED("1012", HttpServletResponse.SC_FORBIDDEN, "Integration Scope Is Already Registered"),
 	
-	INTEGRATION_DETAILS_NOT_EXISTS("1013", HttpServletResponse.SC_FORBIDDEN, "Integration Details Not Exist");
+	INTEGRATION_DETAILS_NOT_EXISTS("1013", HttpServletResponse.SC_FORBIDDEN, "Integration Details Not Exist"),
+	
+	USER_NOT_ASSOCIATED_INTEGRATION("1014", HttpServletResponse.SC_FORBIDDEN, "User is not associated on this integration"),
+	
+	ACCOUNT_ALREADY_EXISTS("1015", HttpServletResponse.SC_FORBIDDEN, "User account already exists"),
+	
+	INTEGRATION_SCOPE_CHANGED("1016", HttpServletResponse.SC_FORBIDDEN, "Integration scope has been changed");
 	
 	String errorCode;
 	

@@ -27,13 +27,12 @@ public class GeminiAIAPI extends APIUtil{
 	private static final Logger LOGGER = LogManager.getLogger(GeminiAIAPI.class);
 	
 	@POST
-	@Path("{integrationId}")
+	@Path("{integrationId}/{userId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getChat(@PathParam("orgId") long orgId, @PathParam("integrationId") long integrationId, String payloadStr) throws RestException {
+	public String getChat(@PathParam("orgId") long orgId, @PathParam("integrationId") long integrationId, @PathParam("userId") long userId, String payloadStr) throws RestException {
 		try {
-			isScopeRegistered(orgId, IntegrationConstants.Apps.GEMINI_AI_APP_ID.getValue());
-			isValidIntegId(orgId, integrationId);
+			isValidScopeByIntegrationId(orgId, IntegrationConstants.Apps.GEMINI_AI_APP_ID.getValue(), integrationId, userId, null);
 			
 			JsonObject payloadJson = new Gson().fromJson(payloadStr, JsonObject.class);
 			IntegrationMasterPOJO integrationMasterPojo = this.getIntegrationMasterPOJO();

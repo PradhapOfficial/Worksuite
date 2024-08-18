@@ -3,6 +3,7 @@ package com.worksuite.core.bean;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -27,6 +28,10 @@ public class AccountsBeanImpl implements AccountsBean {
 
 			connection = DBUtil.getConnection();
 
+			if(isAccountExists(connection, userPojo.getEmailId())) {
+				throw new RestException(ErrorCode.ACCOUNT_ALREADY_EXISTS);
+			}
+			
 			preparedStatement = connection.prepareStatement(query);
 			preparedStatement.setString(1, accountsPojo.getEmailId());
 			preparedStatement.setString(2, accountsPojo.getPassWord());
@@ -117,27 +122,29 @@ public class AccountsBeanImpl implements AccountsBean {
 	@Override
 	public boolean isAccountExists(String emailId) throws RestException {
 		Connection connection = null;
-		PreparedStatement preparedStatement = null;
+		
 		ResultSet resultSet = null;
 		try {
 			connection = DBUtil.getConnection();
-			String query = "SELECT * FROM Accounts WHERE EMAIL_ID = ?";
-
-			preparedStatement = connection.prepareStatement(query);
-			preparedStatement.setString(1, emailId);
-
-			resultSet = preparedStatement.executeQuery();
-			if (resultSet.next()) {
-				return true;
-			}
+			return isAccountExists(connection, emailId);
 		}catch(RestException re) {
 			throw re;
 		}catch (Exception e) {
 			LOGGER.log(Level.ERROR, "Exception occured while isAccountExists :: ", e);
 		} finally {
-			new DBUtil().closeConnection(connection, preparedStatement, resultSet);
+			new DBUtil().closeConnection(connection, null, resultSet);
 		}
 		return false;
+	}
+	
+	private boolean isAccountExists(Connection connection, String emailId) throws SQLException {
+		String query = "SELECT * FROM Accounts WHERE EMAIL_ID = ?";
+		
+		PreparedStatement preparedStatement = connection.prepareStatement(query);
+		preparedStatement.setString(1, emailId);
+
+		ResultSet resultSet = preparedStatement.executeQuery();
+		return resultSet.next();
 	}
 
 	@Override
