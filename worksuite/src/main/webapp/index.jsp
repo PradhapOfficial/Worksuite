@@ -1,3 +1,4 @@
+<%@page import="com.worksuite.rest.api.common.APIUtil"%>
 <%@page import="com.worksuite.core.bean.OrgPOJO"%>
 <%@page import="com.worksuite.core.bean.OrgBeanImpl"%>
 <%@page import="com.worksuite.core.bean.OrgBean"%>
@@ -27,7 +28,8 @@
 	String orgId = null;
 	String userId = null;
 	if(token != null){
-		userId = AuthorizationUtils.claimDetailsFromToken(token.split("=")[1]);
+		//userId = AuthorizationUtils.claimDetailsFromToken(token.split("=")[1]);
+		userId = String.valueOf(APIUtil.getUserId(request));
 		try{
 			OrgBean orgBean = new OrgBeanImpl();
 			OrgPOJO orgPojo = orgBean.getFirstOrgDetails(Long.parseLong(userId));
@@ -37,7 +39,7 @@
 		}
 	}
 	boolean isDevelopment = ApplicationUtils.isDevelopment();
-	String staticURL = (isDevelopment ? "http://localhost:3001/static/js/bundle.js" : "static/react-client.js");
+	String staticURL = (isDevelopment ? "http://192.168.33.211:3001/static/js/bundle.js" : "static/react-client.js");
 %>
 <script>
 	var isDevelopment = <%=isDevelopment%>;

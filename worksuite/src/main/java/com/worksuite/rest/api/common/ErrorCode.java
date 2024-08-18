@@ -36,7 +36,9 @@ public enum ErrorCode {
 	
 	ACCOUNT_ALREADY_EXISTS("1015", HttpServletResponse.SC_FORBIDDEN, "User account already exists"),
 	
-	INTEGRATION_SCOPE_CHANGED("1016", HttpServletResponse.SC_FORBIDDEN, "Integration scope has been changed");
+	INTEGRATION_SCOPE_CHANGED("1016", HttpServletResponse.SC_FORBIDDEN, "Integration scope has been changed"),
+	
+	ALREADY_SUPER_ADMIN_IN_ORG("1017", HttpServletResponse.SC_FORBIDDEN, "User can be super admin role in one org.");
 	
 	String errorCode;
 	

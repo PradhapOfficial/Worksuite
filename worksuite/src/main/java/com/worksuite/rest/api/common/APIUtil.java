@@ -1,9 +1,16 @@
 package com.worksuite.rest.api.common;
 
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import com.worksuite.core.bean.OrgBean;
+import com.worksuite.core.bean.OrgBeanImpl;
 import com.worksuite.core.bean.UserBean;
 import com.worksuite.core.bean.UserBeanImpl;
 import com.worksuite.core.bean.UserMasterPOJO;
 import com.worksuite.core.bean.UserPOJO;
+import com.worksuite.db.util.ApplicationUtils;
 import com.worksuite.integration.bean.IntegrationBean;
 import com.worksuite.integration.bean.IntegrationBeanImpl;
 import com.worksuite.integration.bean.IntegrationMasterPOJO;
@@ -30,7 +37,7 @@ public class APIUtil {
 		return true;
 	}
 	
-	public boolean isValidScopeByIntegrationId(long orgId, long appId, long integrationId, Long userId, Long departmentId) throws RestException {
+	public boolean isIntegrationIdAssociatedWithCurrentScope(long orgId, long appId, long integrationId, Long userId, Long departmentId) throws RestException {
 		
 		isValidAppId(appId);
 		
@@ -119,6 +126,17 @@ public class APIUtil {
 		return true;
 	}
 	
+	public boolean isSuperAdminInExistingOrg(long userId) throws RestException {
+		OrgBean orgBean = new OrgBeanImpl();
+		boolean isSuperAdmin = orgBean.isSuperAdmin(userId);
+		
+		Map<Long, Long> privillagedUsersMap = ApplicationUtils.getPrivilagedUsers();
+		if(isSuperAdmin && !privillagedUsersMap.containsKey(userId)) {
+			throw new RestException(ErrorCode.ALREADY_SUPER_ADMIN_IN_ORG);
+		}
+		return false;
+	}
+	
 	public ScopePOJO getScopePojo() {
 		return this.scopePojo;
 	}
@@ -185,6 +203,11 @@ public class APIUtil {
 			throw new RestException(ErrorCode.USER_NOT_ASSOCIATED_INTEGRATION);
 		}
 		return true;
+	}
+	
+	public static long getUserId(HttpServletRequest request) {
+		String userItStr = request.getAttribute(ConfigConstants.USER_ID) + "";
+		return Long.parseLong(userItStr);
 	}
 	
 }

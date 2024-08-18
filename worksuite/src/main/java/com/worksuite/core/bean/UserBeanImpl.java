@@ -201,21 +201,9 @@ public class UserBeanImpl implements UserBean {
 		ResultSet rs = null;
 		DBUtil dbUtil = new DBUtil();
 		try {
-			String query = "SELECT USER_ID FROM OrganizationUserMapping WHERE USER_ID = ? AND ORG_ID = ?";
+			String query = new StringBuilder("SELECT ROLE_ID FROM Role WHERE ROLE_VALUE = ").append(newUserObj.get("role").getAsLong()).toString();
 			conn = DBUtil.getConnection();
 			prep = conn.prepareStatement(query);
-			prep.setLong(1, userId);
-			prep.setLong(2, orgId);
-
-			rs = prep.executeQuery();
-
-			if (!rs.next()) {
-				throw new RestException(ErrorCode.INVALID_USER_ID);
-			}
-			
-			dbUtil.closeConnection(rs);
-			query = new StringBuilder("SELECT ROLE_ID FROM Role WHERE ROLE_VALUE = ").append(newUserObj.get("role").getAsLong()).toString();
-			
 			rs = prep.executeQuery(query);
 			
 			if(!rs.next()) {
@@ -249,24 +237,9 @@ public class UserBeanImpl implements UserBean {
 		ResultSet rs = null;
 		DBUtil dbUtil = new DBUtil();
 		try {
-			String query = "SELECT USER_ID FROM OrganizationUserMapping WHERE USER_ID = ? AND ORG_ID = ?";
-
+			String query = "SELECT ROLE_ID, ROLE_VALUE FROM Role";
 			conn = DBUtil.getConnection();
 			prep = conn.prepareStatement(query);
-
-			prep.setLong(1, userId);
-			prep.setLong(2, orgId);
-
-			rs = prep.executeQuery();
-
-			if (!rs.next()) {
-				throw new RestException(ErrorCode.INVALID_USER_ID);
-			}
-			
-			dbUtil.closeConnection(rs);
-			
-			query = "SELECT ROLE_ID, ROLE_VALUE FROM Role";
-			
 			rs = prep.executeQuery(query);
 			
 			Map<Integer, Long> roleIdMap = new HashMap<Integer, Long>();
@@ -296,8 +269,6 @@ public class UserBeanImpl implements UserBean {
 			int[] resultArray = prep.executeBatch();
 			return resultArray.length > 0;
 			
-		}catch(RestException re) {
-			throw re;
 		}catch (Exception e) {
 			LOGGER.log(Level.ERROR, "Exception Occured while addListOfUserDetails :: ", e);
 			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);

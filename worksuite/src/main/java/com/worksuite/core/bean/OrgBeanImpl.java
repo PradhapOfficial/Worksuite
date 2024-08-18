@@ -35,6 +35,29 @@ public class OrgBeanImpl implements OrgBean {
 	}
 	
 	@Override
+	public boolean isSuperAdmin(long userId) throws RestException {
+		Connection conn = null;
+		PreparedStatement prep = null;
+		ResultSet rs = null;
+		try {
+			conn = DBUtil.getConnection();
+			String query = "SELECT ORG_ID FROM OrganizationUserMapping INNER JOIN Role ON OrganizationUserMapping.ROLE_ID = Role.ROLE_ID AND Role.ROLE_VALUE = 1 WHERE OrganizationUserMapping.USER_ID = ?";
+			prep = conn.prepareStatement(query);
+			prep.setLong(1, userId);
+			
+			rs = prep.executeQuery();
+			return rs.next();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while isSuperAdmin :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		} finally {
+			new DBUtil().closeConnection(conn, prep, rs);
+		}
+	}
+	
+	@Override
 	public OrgPOJO getFirstOrgDetails(long userId) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;

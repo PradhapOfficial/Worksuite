@@ -1,10 +1,15 @@
 package com.worksuite.db.util;
 
+import java.util.Arrays;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.worksuite.rest.api.common.ConfigConstants;
 
 public class ApplicationUtils {
 	
@@ -44,5 +49,12 @@ public class ApplicationUtils {
 			LOGGER.log(Level.ERROR, "Exception occured while getProperty :: ", e);
 		}
 		return false;
+	}
+	
+	public static Map<Long, Long> getPrivilagedUsers() {
+		String  privilagedUserStr = getProperty(ConfigConstants.IS_PRIVILAGED_USER);
+		String[] privilagedUsers = privilagedUserStr.split(",");
+		
+		return Arrays.stream(privilagedUsers).collect(Collectors.toMap(s -> Long.parseLong(s.split(":")[0]), s -> Long.parseLong(s.split(":")[0])));
 	}
 }

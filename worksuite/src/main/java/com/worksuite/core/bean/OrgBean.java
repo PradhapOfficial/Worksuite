@@ -13,4 +13,6 @@ public interface OrgBean {
 	public OrgPOJO updateOrgDetails(long userId, long orgId, OrgPOJO orgPojo) throws RestException;
 
 	public boolean deleteOrgDetails(long userId, long orgId) throws RestException;
+	
+	public boolean isSuperAdmin(long userId) throws RestException;
 }

@@ -1,10 +1,12 @@
 package com.worksuite.integration.rest.api;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.logging.log4j.Level;
@@ -27,12 +29,13 @@ public class GeminiAIAPI extends APIUtil{
 	private static final Logger LOGGER = LogManager.getLogger(GeminiAIAPI.class);
 	
 	@POST
-	@Path("{integrationId}/{userId}")
+	@Path("{integrationId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public String getChat(@PathParam("orgId") long orgId, @PathParam("integrationId") long integrationId, @PathParam("userId") long userId, String payloadStr) throws RestException {
+	public String getChat(@PathParam("orgId") long orgId, @PathParam("integrationId") long integrationId, String payloadStr, @Context HttpServletRequest request) throws RestException {
 		try {
-			isValidScopeByIntegrationId(orgId, IntegrationConstants.Apps.GEMINI_AI_APP_ID.getValue(), integrationId, userId, null);
+			long userId = APIUtil.getUserId(request);
+			isIntegrationIdAssociatedWithCurrentScope(orgId, IntegrationConstants.Apps.GEMINI_AI_APP_ID.getValue(), integrationId, userId, null);
 			
 			JsonObject payloadJson = new Gson().fromJson(payloadStr, JsonObject.class);
 			IntegrationMasterPOJO integrationMasterPojo = this.getIntegrationMasterPOJO();

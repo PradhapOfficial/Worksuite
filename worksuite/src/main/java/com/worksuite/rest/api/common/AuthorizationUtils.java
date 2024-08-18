@@ -58,4 +58,9 @@ public class AuthorizationUtils {
 		}
 		return null;
 	}
+	
+	public static long getUserIdFromToken(String token) {
+		String userId = claimDetailsFromToken(token);
+		return Long.parseLong(userId);
+	}
 }
