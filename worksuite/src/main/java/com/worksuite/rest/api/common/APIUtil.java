@@ -207,7 +207,10 @@ public class APIUtil {
 	
 	public static long getUserId(HttpServletRequest request) {
 		String userItStr = request.getAttribute(ConfigConstants.USER_ID) + "";
-		return Long.parseLong(userItStr);
+		if(userItStr != null && !"null".equals(userItStr)) {
+			return Long.parseLong(userItStr);
+		}
+		return -1;
 	}
 	
 }

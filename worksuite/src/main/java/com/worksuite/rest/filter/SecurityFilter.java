@@ -42,8 +42,9 @@ public class SecurityFilter implements Filter {
 				if(token != null) {
 					if(!AuthorizationUtils.isValidToken(token)) {
 						httpResponse.sendRedirect("login.jsp");
+					}else {
+						setUserId(httpRequest, token);
 					}
-					setUserId(httpRequest, token);
 				}else {
 					LOGGER.log(Level.INFO, "Token not exist");
 					httpResponse.sendRedirect("login.jsp");	
@@ -66,9 +67,9 @@ public class SecurityFilter implements Filter {
 					}else {
 						httpResponse.sendRedirect("login.jsp");
 					}
+				}else {
+					setUserId(httpRequest, token);
 				}
-
-				setUserId(httpRequest, token);
 			}
 			
 		}
@@ -82,7 +83,7 @@ public class SecurityFilter implements Filter {
 	}
 	
 	public void setUserId(HttpServletRequest httpRequest, String token) {
-		long userId = AuthorizationUtils.getUserIdFromToken(token);
+		Long userId = AuthorizationUtils.getUserIdFromToken(token);
 		httpRequest.setAttribute(ConfigConstants.USER_ID, userId);
 	}
 }

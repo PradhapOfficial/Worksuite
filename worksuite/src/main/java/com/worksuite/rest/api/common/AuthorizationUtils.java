@@ -45,22 +45,32 @@ public class AuthorizationUtils {
 		return false;
 	}
 	
-	public static String claimDetailsFromToken(String token) {
-		try {
-			Claims claims = Jwts.parser()
-			        .setSigningKey(ConfigConstants.SECRET_KEY)
-			        .parseClaimsJws(token)
-			        .getBody();
-		
-			return claims.get(ConfigConstants.USER_DETAILS_CLAIM) + "";
-		}catch(Exception e) {
-			LOGGER.log(Level.ERROR, "Exception occured while claimDetailsFromToken :: ", e);
-		}
-		return null;
+	public static String claimDetailsFromToken(String token) throws Exception{
+		Claims claims = Jwts.parser()
+		        .setSigningKey(ConfigConstants.SECRET_KEY)
+		        .parseClaimsJws(token)
+		        .getBody();
+	
+		return claims.get(ConfigConstants.USER_DETAILS_CLAIM) + "";
+//		try {
+//			Claims claims = Jwts.parser()
+//			        .setSigningKey(ConfigConstants.SECRET_KEY)
+//			        .parseClaimsJws(token)
+//			        .getBody();
+//		
+//			return claims.get(ConfigConstants.USER_DETAILS_CLAIM) + "";
+//		}catch(Exception e) {
+//			LOGGER.log(Level.ERROR, "Exception occured while claimDetailsFromToken :: ", e);
+//		}
 	}
 	
-	public static long getUserIdFromToken(String token) {
-		String userId = claimDetailsFromToken(token);
-		return Long.parseLong(userId);
+	public static Long getUserIdFromToken(String token){
+		try {
+			String userId = claimDetailsFromToken(token);
+			return Long.parseLong(userId);
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while getUserIdFromToken :: ", e);
+		}
+		return null;
 	}
 }
