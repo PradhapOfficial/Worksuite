@@ -16,7 +16,29 @@ public enum ErrorCode {
 	
 	INVALID_APP_ID("1005", HttpServletResponse.SC_FORBIDDEN, "Invalid App Id"),
 	
-	NOT_ORG_ADMIN("1006", HttpServletResponse.SC_FORBIDDEN, "Not An Org Admin");
+	NOT_ORG_ADMIN("1006", HttpServletResponse.SC_FORBIDDEN, "Not An Org Admin"),
+	
+	INVALID_TOKEN("1007", HttpServletResponse.SC_UNAUTHORIZED, "Invalid token"),
+	
+	INVALID_EMAIL_ID("1008", HttpServletResponse.SC_FORBIDDEN, "Invalid emailId"),
+	
+	INVALID_EMAIL_ID_AND_PASSWORD("1009", HttpServletResponse.SC_FORBIDDEN, "Invalid emailId and Password"),
+	
+	UNABLE_TO_PROCESS("1010", HttpServletResponse.SC_FORBIDDEN, "Unable to proccess the request"),
+	
+	INVALID_ROLE("1011", HttpServletResponse.SC_FORBIDDEN, "Invalid Role"),
+	
+	SCOPE_ALREADY_REGISTERED("1012", HttpServletResponse.SC_FORBIDDEN, "Integration Scope Is Already Registered"),
+	
+	INTEGRATION_DETAILS_NOT_EXISTS("1013", HttpServletResponse.SC_FORBIDDEN, "Integration Details Not Exist"),
+	
+	USER_NOT_ASSOCIATED_INTEGRATION("1014", HttpServletResponse.SC_FORBIDDEN, "User is not associated on this integration"),
+	
+	ACCOUNT_ALREADY_EXISTS("1015", HttpServletResponse.SC_FORBIDDEN, "User account already exists"),
+	
+	INTEGRATION_SCOPE_CHANGED("1016", HttpServletResponse.SC_FORBIDDEN, "Integration scope has been changed"),
+	
+	ALREADY_SUPER_ADMIN_IN_ORG("1017", HttpServletResponse.SC_FORBIDDEN, "User can be super admin role in one org.");
 	
 	String errorCode;
 	

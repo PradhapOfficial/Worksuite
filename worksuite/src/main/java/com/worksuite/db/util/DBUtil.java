@@ -6,17 +6,26 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.worksuite.db.util.ApplicationConstants.DATA_BASE;
+
 public class DBUtil {
 
-	private static final String JDBC_URL = System.getProperty("JDBC_URL") != null ? System.getProperty("JDBC_URL")
-			: "jdbc:mysql://localhost:3306/worksuite";
+	private static final String dbUrl = System.getProperty("JDBC_URL");
+	private static final String dbUserName = System.getProperty("JDBC_USER_NAME");
+	private static final String dbPassWord = System.getProperty("JDBC_PASSWORD");
+	
+	private static final String JDBC_URL = dbUrl != null ? dbUrl : ApplicationUtils.getProperty(DATA_BASE.DB_URL.toString());
 
-	private static final String USER_NAME = System.getProperty("USER_NAME") != null ? System.getProperty("USER_NAME")
-			: "root";
+	private static final String USER_NAME = dbUserName != null ? dbUserName : ApplicationUtils.getProperty(DATA_BASE.DB_USER_NAME.toString());
 
-	private static final String PASSWORD = System.getProperty("PASSWORD") != null ? System.getProperty("PASSWORD")
-			: "Pahp@123";
+	private static final String PASSWORD = dbPassWord != null ? dbPassWord : ApplicationUtils.getProperty(DATA_BASE.DB_PASSWORD.toString());
 
+	private static final Logger LOGGER = LogManager.getLogger(DBUtil.class);
+	
 	public static Connection getConnection() throws Exception {
 		// Load DB Driver
 		Class.forName("com.mysql.cj.jdbc.Driver");
@@ -33,7 +42,7 @@ public class DBUtil {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("Exception occured in hasColumn :: " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while hasColumn :: ", e);
 		}
 		return false;
 	}
@@ -62,7 +71,7 @@ public class DBUtil {
 				conn.close();
 			}
 		} catch (Exception e) {
-			System.out.println("Exception occured while close connection : " + e);
+			LOGGER.log(Level.ERROR, "Exception Occured while closeConnection :: ", e);
 		}
 	}
 }

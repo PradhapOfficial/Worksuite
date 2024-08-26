@@ -33,9 +33,11 @@ public class IntegrationConstants {
 	
 	public enum Apps {
 		
-		OPENAI_APP_ID(7845457649l);
+		OPENAI_APP_ID(7845457649l),
 		
-		long value;
+		GEMINI_AI_APP_ID(7845457650l);
+		
+		private long value;
 		
 		private Apps(long value){
 			this.value = value;

@@ -9,7 +9,7 @@ import com.worksuite.integration.util.OpenAIConstants;
 
 public class OpenAI {
 	
-	public JsonObject getChat(String apiKey, JsonObject contentObj) throws Exception {
+	public static JsonObject getChat(String apiKey, JsonObject contentObj) throws Exception {
 		HttpRequest httpRequest = new HttpRequest(OpenAIConstants.CHAT_URL);
 		httpRequest.setRequestProperty(HttpConstants.AUTHORIZATION, OpenAIConstants.BEARER + " " + apiKey);
 		httpRequest.setRequestProperty(HttpConstants.CONTENT_TYPE, HttpConstants.APPLICATION_JSON);

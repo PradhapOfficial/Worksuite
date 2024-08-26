@@ -5,6 +5,9 @@
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
   
+  <welcome-file-list>
+  	   <welcome-file>index.jsp</welcome-file>  
+  </welcome-file-list>
   <servlet>
         <servlet-name>Jersey Servlet</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
@@ -22,4 +25,23 @@
         <servlet-name>Jersey Servlet</servlet-name>
         <url-pattern>/api/v1/*</url-pattern>
     </servlet-mapping>
+  
+    <filter>
+  		<filter-name>Security Filter</filter-name>
+  		<filter-class>com.worksuite.rest.filter.SecurityFilter</filter-class>
+  	</filter>
+  	<filter-mapping>
+  		<filter-name>Security Filter</filter-name>
+  		<url-pattern>/*</url-pattern>
+  	</filter-mapping>
+  
+  	<error-page>
+	    <error-code>404</error-code>
+	    <location>/error404.jsp</location>
+	</error-page>
+
+	<error-page>
+			<exception-type>java.lang.Exception</exception-type>
+			<location>/Error.jsp</location>
+	</error-page>
 </web-app>

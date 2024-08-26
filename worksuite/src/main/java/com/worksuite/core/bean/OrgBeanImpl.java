@@ -4,33 +4,83 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.worksuite.db.util.DBUtil;
+import com.worksuite.rest.api.common.ErrorCode;
+import com.worksuite.rest.api.common.RestException;
 
 public class OrgBeanImpl implements OrgBean {
 
+	private static final Logger LOGGER = LogManager.getLogger(OrgBeanImpl.class);
+	
 	@Override
-	public OrgPOJO getOrgDetails(final long userId, final long orgId) {
+	public OrgPOJO getOrgDetails(final long userId, final long orgId) throws RestException{
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 		try {
 			conn = DBUtil.getConnection();
-
 			return getOrgDetailsPrep(conn, userId, orgId);
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while addAccountDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
-
+	
 	@Override
-	public OrgPOJO addOrgDetails(final long userId, OrgPOJO orgPojo) {
+	public boolean isSuperAdmin(long userId) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
-		DBUtil dbUtil = null;
+		try {
+			conn = DBUtil.getConnection();
+			String query = "SELECT ORG_ID FROM OrganizationUserMapping INNER JOIN Role ON OrganizationUserMapping.ROLE_ID = Role.ROLE_ID AND Role.ROLE_VALUE = 1 WHERE OrganizationUserMapping.USER_ID = ?";
+			prep = conn.prepareStatement(query);
+			prep.setLong(1, userId);
+			
+			rs = prep.executeQuery();
+			return rs.next();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while isSuperAdmin :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		} finally {
+			new DBUtil().closeConnection(conn, prep, rs);
+		}
+	}
+	
+	@Override
+	public OrgPOJO getFirstOrgDetails(long userId) throws RestException {
+		Connection conn = null;
+		PreparedStatement prep = null;
+		ResultSet rs = null;
+		try {
+			conn = DBUtil.getConnection();
+			String query = "SELECT * FROM OrganizationUserMapping INNER JOIN Organization ON OrganizationUserMapping.ORG_ID = Organization.ORG_ID INNER JOIN Role ON OrganizationUserMapping.ROLE_ID = Role.ROLE_ID WHERE OrganizationUserMapping.USER_ID = ?";
+			return getOrgDetailsPrep(conn, userId, null, query);
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while getFirstOrgDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		} finally {
+			new DBUtil().closeConnection(conn, prep, rs);
+		}
+	}
+
+	@Override
+	public OrgPOJO addOrgDetails(final long userId, OrgPOJO orgPojo) throws RestException {
+		Connection conn = null;
+		PreparedStatement prep = null;
+		ResultSet rs = null;
 		try {
 			String query = "INSERT INTO Organization(ORG_NAME, CREATED_BY, MODIFIED_BY, CREATED_TIME, MODIFIED_TIME, STATUS) VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -44,7 +94,7 @@ public class OrgBeanImpl implements OrgBean {
 			new OrgPOJO().convertPojoToPrep(prep, orgPojo);
 
 			if (prep.executeUpdate() == 0) {
-				throw new Exception("Unable to insert");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			query = new StringBuilder("SELECT * FROM Organization WHERE CREATED_BY = ").append(userId)
@@ -61,11 +111,11 @@ public class OrgBeanImpl implements OrgBean {
 			rs = prep.executeQuery(query);
 
 			if (!rs.next()) {
-				throw new Exception("Unable to insert RoleId");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			final long roleId = rs.getLong("ROLE_ID");
-			(dbUtil = new DBUtil()).closeConnection(null, prep, rs);
+			new DBUtil().closeConnection(null, prep, rs);
 
 			query = "INSERT INTO OrganizationUserMapping(ORG_ID, USER_ID, ROLE_ID) VALUES (?, ?, ?)"; // Role Id - 1 -->
 																										// Super Admin
@@ -76,32 +126,31 @@ public class OrgBeanImpl implements OrgBean {
 			prep.setLong(3, roleId);
 
 			if (prep.executeUpdate() == 0) {
-				throw new Exception("Failed to update in mapping table");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			orgPojo = getOrgDetailsPrep(conn, userId, orgId);
 
 			return orgPojo;
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while addOrgDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
 
 	@Override
-	public OrgPOJO updateOrgDetails(final long userId, final long orgId, OrgPOJO orgPojo) {
+	public OrgPOJO updateOrgDetails(final long userId, final long orgId, OrgPOJO orgPojo) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
-		DBUtil dbUtil = null;
 		try {
 			conn = DBUtil.getConnection();
 
-			if (getOrgDetailsPrep(conn, userId, orgId) == null) {
-				throw new Exception("Invalid input");
-			}
+			getOrgDetailsPrep(conn, userId, orgId);
 
 			StringBuilder queryBuilder = new StringBuilder("UPDATE Organization SET ");
 			if (orgPojo.getOrgName() != null) {
@@ -147,32 +196,31 @@ public class OrgBeanImpl implements OrgBean {
 			prep.setLong(5, orgId);
 
 			if (prep.executeUpdate() == 0) {
-				throw new Exception("Unable to insert");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 
 			orgPojo = getOrgDetailsPrep(conn, userId, orgId);
 
 			return orgPojo;
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while updateOrgDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
 
 	@Override
-	public boolean deleteOrgDetails(final long userId, final long orgId) {
+	public boolean deleteOrgDetails(final long userId, final long orgId) throws RestException {
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 		try {
 			conn = DBUtil.getConnection();
 
-			boolean isUserExistsInOrg = getOrgDetailsPrep(conn, userId, orgId) != null;
-			if (!isUserExistsInOrg) {
-				throw new Exception("User is not exisiting in org");
-			}
+			getOrgDetailsPrep(conn, userId, orgId);
 
 			String query = "DELETE FROM Organization WHERE ORG_ID = ?";
 			prep = conn.prepareStatement(query);
@@ -180,21 +228,23 @@ public class OrgBeanImpl implements OrgBean {
 			prep.setLong(1, orgId);
 
 			return (prep.executeUpdate() > 0);
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while deleteOrgDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(conn, prep, rs);
 		}
-		return false;
 	}
 
-	private OrgPOJO getOrgDetailsPrep(Connection conn, final long userId, final long orgId) throws Exception {
+	private OrgPOJO getOrgDetailsPrep(Connection conn, final long userId, final long orgId) throws RestException {
 		String query = "SELECT * FROM OrganizationUserMapping INNER JOIN Organization ON OrganizationUserMapping.ORG_ID = Organization.ORG_ID INNER JOIN Role ON OrganizationUserMapping.ROLE_ID = Role.ROLE_ID WHERE OrganizationUserMapping.USER_ID = ? AND OrganizationUserMapping.ORG_ID = ?";
 		return getOrgDetailsPrep(conn, userId, orgId, query);
 	}
 
-	private OrgPOJO getOrgDetailsPrep(Connection conn, final long userId, final long orgId, String query)
-			throws Exception {
+	private OrgPOJO getOrgDetailsPrep(Connection conn, long userId, Long orgId, String query)
+			throws RestException {
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 
@@ -202,22 +252,25 @@ public class OrgBeanImpl implements OrgBean {
 			prep = conn.prepareStatement(query);
 
 			prep.setLong(1, userId);
-			prep.setLong(2, orgId);
 
+			if(orgId != null) {
+				prep.setLong(2, orgId);
+			}
+			
 			rs = prep.executeQuery();
 
 			if (!rs.next()) {
-				throw new Exception("No row");
+				throw new RestException(ErrorCode.INVALID_USER_NOT_PRESENT_IN_ORG);
 			}
 
 			return OrgPOJO.convertResultSetToPojo(rs).setRoleDetails(RolePOJO.convertResultSetToPojo(rs));
-
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(RestException re) {
+			throw re;
+		}catch (Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while getOrgDetailsPrep :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		} finally {
 			new DBUtil().closeConnection(null, prep, rs);
 		}
-		return null;
 	}
-
 }

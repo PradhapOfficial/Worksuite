@@ -9,7 +9,6 @@ public class OpenAIUtil {
 
 	public static JsonObject setChatRequiredFileds(IntegrationMasterPOJO integrationMasterPOJO, JsonObject contentJsonObj) throws Exception{
 		JsonObject outJsonObj = new JsonObject();
-		
 		String version = "";
 		for(IntegrationPropertyPOJO  integrationPropertyPOJO: integrationMasterPOJO.getPropertyDetails()) {
 			if(integrationPropertyPOJO.getPropertyName().equals(IntegrationConstants.VERSION)) {

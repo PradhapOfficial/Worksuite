@@ -3,24 +3,59 @@ package com.worksuite.integration.bean;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.worksuite.db.util.DBUtil;
+import com.worksuite.rest.api.common.ErrorCode;
+import com.worksuite.rest.api.common.RestException;
 
 public class IntegrationBeanImpl implements IntegrationBean {
 
+	private static final Logger LOGGER = LogManager.getLogger(IntegrationBeanImpl.class.getName());
+	
+	private String getIntegrationInsertQuery(int level) {
+		String query = "INSERT INTO Integration (APP_ID, STATUS, ORG_ID, CREATED_BY, MODIFIED_BY, CREATED_TIME, MODIFIED_TIME";
+		StringBuilder queryBuilder  = new StringBuilder(query.length() + 55)
+				.append(query);
+		if(level == 2) {
+			queryBuilder.append(", DEPARTMENT_ID ");
+		}else if(level == 3) {
+			queryBuilder.append(", USER_ID ");
+		}
+		
+		queryBuilder.append(") VALUES (?, ?, ?, ?, ?, ?, ?");
+		if(level != 1) {
+			queryBuilder.append(", ?");
+		}
+		
+		queryBuilder.append(")");
+		
+		return queryBuilder.toString();
+	}
+
 	@Override
-	public IntegrationMasterPOJO addIntegDetails(final Long orgId, final Long userId, final Long departmentId, IntegrationPOJO integrationPojo, AuthPOJO authPojo, List<IntegrationPropertyPOJO> listOfIntegPropPojo) {
+	public IntegrationMasterPOJO addIntegDetails(Long orgId, Long uniqueId, IntegrationPOJO integrationPojo, AuthPOJO authPojo, List<IntegrationPropertyPOJO> listOfIntegPropPojo, int level) throws RestException{
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 		DBUtil dbUtil = new DBUtil();
 		try {
 			conn = DBUtil.getConnection();
-			getDetails(conn, orgId, integrationPojo);
 			
-			String query = "INSERT INTO Integration (APP_ID, STATUS, ORG_ID, LEVEL, CREATED_BY, MODIFIED_BY, CREATED_TIME, MODIFIED_TIME) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			try {
+				return getIntegrationDetailsByScope(conn, orgId, uniqueId, getIntegrationByScopeQuery(level), level);
+			}catch(RestException re) {
+				LOGGER.log(Level.INFO, "Proceed to addIntegDetails :: ");
+			}
+			
+			String query = getIntegrationInsertQuery(level);
+			
 			long currentTime = System.currentTimeMillis();
 			integrationPojo.setCreatedTime(currentTime)
 				.setModifiedTime(currentTime);
@@ -29,72 +64,86 @@ public class IntegrationBeanImpl implements IntegrationBean {
 			prep.setLong(1, integrationPojo.getAppId());
 			prep.setBoolean(2, integrationPojo.getStatus());
 			prep.setLong(3, integrationPojo.getOrgId());
-			prep.setLong(4, integrationPojo.getLevel());
-			prep.setLong(5, integrationPojo.getCreatedBy());
-			prep.setLong(6, integrationPojo.getModifiedBy());
-			prep.setLong(7, integrationPojo.getCreatedTime());
-			prep.setLong(8, integrationPojo.getModifiedTime());
+			prep.setLong(4, integrationPojo.getCreatedBy());
+			prep.setLong(5, integrationPojo.getModifiedBy());
+			prep.setLong(6, integrationPojo.getCreatedTime());
+			prep.setLong(7, integrationPojo.getModifiedTime());
+			
+			if(level != 1) {
+				prep.setLong(8, uniqueId);
+			}
 			
 			if(prep.executeUpdate() == 0) {
-				throw new Exception("Unable to add the data");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}
 			
-			int level = integrationPojo.getLevel();
-			final long uniqueId;
-			switch(level) {
-				case 2:
-					uniqueId = departmentId;
-					break;
-				case 3:
-					uniqueId = userId;
-					break;
-				default:
-					uniqueId = orgId;
-					break;
-			}
-			
-			integrationPojo = getDetailsIntegDetails(conn, integrationPojo);
-			addToTables(conn, uniqueId, integrationPojo.getIntegrationId(), level, authPojo, listOfIntegPropPojo);
-			return getDetailsByIntegId(conn, integrationPojo.getIntegrationId(), level);
+			//integrationPojo = getDetailsIntegDetails(conn, integrationPojo);
+			long integrationId = getIntegrationDetailsByScope(conn, orgId, uniqueId, level);
+			addToTables(conn, uniqueId, integrationId, level, authPojo, listOfIntegPropPojo);
+			return getIntegrationDetailsByIntergrationId(conn, orgId, integrationId, getIntegrationByIntegrationIdQuery());
+		}catch(RestException re) {
+			throw re;
 		}catch(Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.ERROR, "Exception Occured while addIntegDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}finally {
 			dbUtil.closeConnection(conn, prep, rs);
 		}
-		return null;
 	}
 
 	@Override
-	public IntegrationPOJO updateIntegDetails(long orgId, long userId, IntegrationPOJO integrationPojo) {
+	public IntegrationPOJO updateIntegDetails(long orgId, long userId, IntegrationPOJO integrationPojo) throws RestException{
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public IntegrationMasterPOJO getIntegDetails(long integrationId, int level) {
+	public IntegrationMasterPOJO getIntegrationDetailsByIntegrationId(long orgId, long integrationId) throws RestException{
 		Connection conn = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 		DBUtil dbUtil = new DBUtil();
 		try {
 			conn = DBUtil.getConnection();
-			return getDetailsByIntegId(conn, integrationId, level);
+			
+			return getIntegrationDetailsByIntergrationId(conn, orgId, integrationId, getIntegrationByIntegrationIdQuery());
+		}catch(RestException re) {
+			throw re;
 		}catch(Exception e) {
-			e.printStackTrace();
+			LOGGER.log(Level.ERROR, "Exception Occured while getIntegDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}finally {
 			dbUtil.closeConnection(conn, prep, rs);
 		}
-		return null;
+	}
+	
+	@Override
+	public IntegrationMasterPOJO getIntegDetailsByLevel(long orgId, long uniqueId, int level) throws RestException{
+		Connection conn = null;
+		PreparedStatement prep = null;
+		ResultSet rs = null;
+		DBUtil dbUtil = new DBUtil();
+		try {
+			conn = DBUtil.getConnection();
+			return getIntegrationDetailsByScope(conn, orgId, uniqueId, getIntegrationByScopeQuery(level), level);
+		}catch(RestException re) {
+			throw re;
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while getIntegDetailsByLevel :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		}finally {
+			dbUtil.closeConnection(conn, prep, rs);
+		}
 	}
 
 	@Override
-	public List<IntegrationPOJO> getListOfIntegDetails(long orgId, long userId, long integrationId) {
+	public List<IntegrationPOJO> getListOfIntegDetails(long orgId, long userId, long integrationId) throws RestException{
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public boolean deleteIntegnDetails(long orgId, long userId, long integrationId) throws Exception{
+	public boolean deleteIntegnDetails(long orgId, long userId, long integrationId) throws RestException{
 		Connection conn = null;
 		PreparedStatement prep = null; 
 		ResultSet rs = null;
@@ -108,149 +157,158 @@ public class IntegrationBeanImpl implements IntegrationBean {
 			if(prep.executeUpdate() > 0) {
 				return true;
 			}
+		}catch(RestException re) {
+			throw re;
 		}catch(Exception e) {
-			throw e;
+			LOGGER.log(Level.ERROR, "Exception Occured while deleteIntegnDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}finally {
 			new DBUtil().closeConnection(null, prep, rs);
 		}
 		return false;
 	}
 	
-	private IntegrationMasterPOJO getDetailsByIntegId(Connection conn, final long integId, final int level) throws Exception{
-		String query = null;
+	private IntegrationMasterPOJO getIntegrationDetailsByScope(Connection conn, long orgId, long uniqueId, String query, int level) throws RestException{
 		PreparedStatement prep = null; 
 		ResultSet rs = null;
 		try {
-			if(level == 1) {
-				query = "SELECT * FROM IntegrationOrgMapping INNER JOIN Integration ON IntegrationOrgMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
-			}else if(level == 2) {
-				query = "SELECT * FROM IntegrationDepartmentMapping INNER JOIN Integration ON IntegrationDepartmentMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
-			}else {
-				query = "SELECT * FROM IntegrationUserMapping INNER JOIN Integration ON IntegrationUserMapping.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.INTEGRATION_ID = ?";
+			
+			prep = conn.prepareStatement(query);
+			
+			setDetailsForIntegrationScopQuery(prep, orgId, uniqueId, level);
+			
+			return getIntegrationDetails(conn, prep);
+		}catch(RestException re) {
+			throw re;
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while getIntegrationDetailsByScope :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		}finally {
+			new DBUtil().closeConnection(null, prep, rs);
+		}
+	}
+	
+	private Long getIntegrationDetailsByScope(Connection conn, long orgId, long uniqueId, int level) throws RestException{
+		PreparedStatement prep = null; 
+		ResultSet rs = null;
+		try {
+			
+			String query = "SELECT INTEGRATION_ID FROM Integration WHERE Integration.ORG_ID = ?";
+			StringBuilder queryBuilder = new StringBuilder(query.length() + 30)
+					.append(query);
+			if(level == 2) {
+				queryBuilder.append(" AND Integration.DEPARTMENT_ID = ?");
+			}else if(level == 3) {
+				queryBuilder.append(" AND Integration.USER_ID = ?");
 			}
 			
-		
-			prep = conn.prepareStatement(query);
-			prep.setLong(1, integId);
+			prep = conn.prepareStatement(queryBuilder.toString());
+			
+			setDetailsForIntegrationScopQuery(prep, orgId, uniqueId, level);
+			
 			rs = prep.executeQuery();
-			List<IntegrationPropertyPOJO> listOfIntegProperty = new ArrayList<IntegrationPropertyPOJO>();
+			if(rs.next()) {
+				return rs.getLong("INTEGRATION_ID");
+			}
+			return null;
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while getIntegrationDetailsByScope :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		}finally {
+			new DBUtil().closeConnection(null, prep, rs);
+		}
+	}
+	
+	private IntegrationMasterPOJO getIntegrationDetailsByIntergrationId(Connection conn, long orgId, long integrationId, String query) throws RestException{
+		PreparedStatement prep = null; 
+		ResultSet rs = null;
+		try {
+			
+			prep = conn.prepareStatement(query);
+			prep.setLong(1, orgId);
+			prep.setLong(2, integrationId);
+			
+			return getIntegrationDetails(conn, prep);
+		}catch(RestException re) {
+			throw re;
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception Occured while getIntegrationDetailsByIntergrationId :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
+		}finally {
+			new DBUtil().closeConnection(null, prep, rs);
+		}
+	}
+	
+	private IntegrationMasterPOJO getIntegrationDetails(Connection conn, PreparedStatement prep) throws RestException{
+		ResultSet rs = null;
+		try {
+			rs = prep.executeQuery();
+			List<IntegrationPropertyPOJO> listOfIntegProperty = new ArrayList<IntegrationPropertyPOJO>(rs.getFetchSize());
 			IntegrationPOJO integrationPojo = null;
 			AuthPOJO authPojo = null;
-			while(rs.next()) {
+			if(rs.next()) {
 				integrationPojo =  IntegrationPOJO.convertResultSetToPojo(rs);
+				authPojo = AuthPOJO.convertResultSetToPojo(rs);
+				listOfIntegProperty.add(IntegrationPropertyPOJO.convertResultSetToPojo(rs));
+			}
+			
+			while(rs.next()) {
 				authPojo = AuthPOJO.convertResultSetToPojo(rs);
 				listOfIntegProperty.add(IntegrationPropertyPOJO.convertResultSetToPojo(rs));
 			}
 			
 			if(integrationPojo == null) {
-				return null;
+				throw new RestException(ErrorCode.INTEGRATION_DETAILS_NOT_EXISTS);
 			}
 			
 			return  new IntegrationMasterPOJO()
 					.setIntegrationDetails(integrationPojo)
 					.setAuthDetails(authPojo)
 					.setPropertyDetails(listOfIntegProperty);
+		}catch(RestException re) {
+			throw re;
 		}catch(Exception e) {
-			throw e;
+			LOGGER.log(Level.ERROR, "Exception Occured while getIntegrationDetails :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}finally {
 			new DBUtil().closeConnection(null, prep, rs);
 		}
 	}
 	
-	private IntegrationPOJO getDetailsIntegDetails(Connection conn, IntegrationPOJO integPojo) throws Exception{
-		String query = null;
-		PreparedStatement prep = null; 
-		ResultSet rs = null;
-		try {
-			query = "SELECT * FROM Integration WHERE CREATED_BY = ? AND CREATED_TIME = ? AND APP_ID = ? AND ORG_ID = ? AND LEVEL = ?";
-			prep = conn.prepareStatement(query);
-			prep.setLong(1, integPojo.getCreatedBy());
-			prep.setLong(2, integPojo.getCreatedTime());
-			prep.setLong(3, integPojo.getAppId());
-			prep.setLong(4, integPojo.getOrgId());
-			prep.setLong(5, integPojo.getLevel());
-			
-			rs = prep.executeQuery();
+	private String getIntegrationByIntegrationIdQuery() {
+		String query = "SELECT * FROM Integration INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.ORG_ID = ? AND Integration.INTEGRATION_ID = ?";
+		return query;
+	}
+	
+	private String getIntegrationByScopeQuery(int level) {
+		String query = "SELECT * FROM Integration INNER JOIN IntegrationProperty ON IntegrationProperty.INTEGRATION_ID = Integration.INTEGRATION_ID INNER JOIN Auth ON Auth.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE Integration.ORG_ID = ?";
+		StringBuilder queryBuilder = new StringBuilder(query.length() + 70)
+				.append(query);
+		if(level == 2) {
+			queryBuilder.append(" AND Integration.DEPARTMENT_ID = ?");
+		}else if(level == 3) {
+			queryBuilder.append(" AND Integration.USER_ID = ?");
+		}else {
+			queryBuilder.append(" AND Integration.DEPARTMENT_ID IS NULL AND Integration.USER_ID IS NULL");
+		}
+		return queryBuilder.toString();
+	}
+	
+	private void setDetailsForIntegrationScopQuery(PreparedStatement prep, Long orgId, Long uniqueId, int level) throws SQLException {
+		prep.setLong(1, orgId);
 		
-			if(rs != null && rs.next()) {
-				return IntegrationPOJO.convertResultSetToPojo(rs);
-			}
-		}catch(Exception e) {
-			throw e;
-		}finally {
-			new DBUtil().closeConnection(null, prep, rs);
+		if(level != 1) {
+			prep.setLong(2, uniqueId);
 		}
-		return null;
-	}
-	
-	private IntegrationMasterPOJO getDetails(Connection conn, final long uniqueId, IntegrationPOJO integrationPojo) throws Exception{
-		String query = null;
-		PreparedStatement prep = null; 
-		ResultSet rs = null;
-		int level = integrationPojo.getLevel();
-		try {
-			if(level == 1) {
-				query = "SELECT * FROM IntegrationOrgMapping INNER JOIN Integration ON IntegrationOrgMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE IntegrationOrgMapping.ORG_ID = ? AND Integration.APP_ID = ? AND Integration.LEVEL = ?";
-			}else if(level == 2) {
-				query = "SELECT * FROM IntegrationDepartmentMapping INNER JOIN Integration ON IntegrationDepartmentMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE IntegrationDepartmentMapping.DEPARTMENT_ID = ? AND Integration.APP_ID = ? AND Integration.LEVEL = ?";
-			}else if(level == 3) {
-				query = "SELECT * FROM IntegrationUserMapping INNER JOIN Integration ON IntegrationUserMapping.INTEGRATION_ID = Integration.INTEGRATION_ID WHERE IntegrationUserMapping.USER_ID = ? AND Integration.APP_ID = ? AND Integration.LEVEL = ?";
-			}
-			
-			if(query == null) {
-				throw new Exception("Query cannot be null");
-			}
-			
-			prep = conn.prepareStatement(query);
-			prep.setLong(1, uniqueId);
-			prep.setLong(2, integrationPojo.getAppId());
-			prep.setLong(3, integrationPojo.getLevel());
-			rs = prep.executeQuery();
 		
-			List<IntegrationPropertyPOJO> listOfIntegProperty = new ArrayList<IntegrationPropertyPOJO>();
-			AuthPOJO authPojo = null;
-			while(rs.next()) {
-				integrationPojo =  IntegrationPOJO.convertResultSetToPojo(rs);
-				authPojo = AuthPOJO.convertResultSetToPojo(rs);
-				listOfIntegProperty.add(IntegrationPropertyPOJO.convertResultSetToPojo(rs));
-			}
-			return  new IntegrationMasterPOJO()
-					.setIntegrationDetails(integrationPojo)
-					.setAuthDetails(authPojo)
-					.setPropertyDetails(listOfIntegProperty);
-		}catch(Exception e) {
-			throw e;
-		}finally {
-			new DBUtil().closeConnection(null, prep, rs);
-		}
 	}
 	
-	private boolean addToTables(Connection conn, final long uniqueId,  final long integrationId, final int level, AuthPOJO authPojo, List<IntegrationPropertyPOJO> listOfIntegPropPojo) throws Exception{
+	private boolean addToTables(Connection conn, final long uniqueId,  final long integrationId, final int level, AuthPOJO authPojo, List<IntegrationPropertyPOJO> listOfIntegPropPojo) throws RestException{
 		String query = null;
 		PreparedStatement prep = null;
 		ResultSet rs = null;
 		DBUtil dbUtil = new DBUtil();
 		try {
-			
-			if(level == 1) {
-				query = "INSERT INTO IntegrationOrgMapping(ORG_ID, INTEGRATION_ID) VALUES (?, ?)";
-			}else if(level == 2) {
-				query = "INSERT INTO IntegrationDepartmentMapping(DEPARTMENT_ID, INTEGRATION_ID) VALUES (?, ?)";
-			}else if(level == 3) {
-				query = "INSERT INTO IntegrationUserMapping(USER_ID, INTEGRATION_ID) VALUES (?, ?)";
-			}
-			
-			if(query == null) {
-				throw new Exception("Query cannot be null");
-			}
-			
-			prep = conn.prepareStatement(query);
-			prep.setLong(1, uniqueId);
-			prep.setLong(2, integrationId);
-			if(!(prep.executeUpdate() > 0)) {
-				
-			}
-			dbUtil.closeConnection(prep);
 			
 			query = "INSERT INTO auth(SCOPE, TOKEN, INTEGRATION_ID) VALUES (?, ?, ?)";
 			prep = conn.prepareStatement(query);
@@ -259,7 +317,7 @@ public class IntegrationBeanImpl implements IntegrationBean {
 			prep.setLong(3, integrationId);
 			
 			if(!(prep.executeUpdate() > 0)) {
-				throw new Exception("Unable to add auth row");
+				throw new RestException(ErrorCode.UNABLE_TO_PROCESS);
 			}	
 			dbUtil.closeConnection(prep);
 			
@@ -272,25 +330,15 @@ public class IntegrationBeanImpl implements IntegrationBean {
 				prep.addBatch();
 			}
 			
-			int successCnt = 0;
 			int[] resultArray = prep.executeBatch();
-			for(int result : resultArray) {
-				if(result == PreparedStatement.SUCCESS_NO_INFO || result >=0 ) {
-					successCnt++;
-				}
-			}
-			System.out.println("Total Count : " + listOfIntegPropPojo.size() + " Success count : " + successCnt + " Failure count : " + (listOfIntegPropPojo.size() - successCnt));
-			return true;
+			return resultArray.length > 0;
+		}catch(RestException re) {
+			throw re;
 		}catch(Exception e) {
-			throw e;
+			LOGGER.log(Level.ERROR, "Exception Occured while addToTables :: ", e);
+			throw new RestException(ErrorCode.INTERNAL_SERVER_ERROR);
 		}finally {
 			dbUtil.closeConnection(null, prep, rs);
 		}
-	}
-
-	@Override
-	public IntegrationPOJO getIntegDetails(long orgId, long userId, long integrationId) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

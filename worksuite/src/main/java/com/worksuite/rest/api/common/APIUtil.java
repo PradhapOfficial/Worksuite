@@ -1,12 +1,20 @@
 package com.worksuite.rest.api.common;
 
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import com.worksuite.core.bean.OrgBean;
+import com.worksuite.core.bean.OrgBeanImpl;
 import com.worksuite.core.bean.UserBean;
 import com.worksuite.core.bean.UserBeanImpl;
 import com.worksuite.core.bean.UserMasterPOJO;
 import com.worksuite.core.bean.UserPOJO;
+import com.worksuite.db.util.ApplicationUtils;
 import com.worksuite.integration.bean.IntegrationBean;
 import com.worksuite.integration.bean.IntegrationBeanImpl;
 import com.worksuite.integration.bean.IntegrationMasterPOJO;
+import com.worksuite.integration.bean.IntegrationPOJO;
 import com.worksuite.integration.bean.ScopeBean;
 import com.worksuite.integration.bean.ScopeBeanImpl;
 import com.worksuite.integration.bean.ScopePOJO;
@@ -20,9 +28,43 @@ public class APIUtil {
 	
 	private UserMasterPOJO userMasterPOJO;
 	
+	private UserPOJO userPojo;
+	
 	public boolean isValidAppId(long appId) throws RestException {
 		if(!IntegrationConstants.isValidAppId(appId)) {
 			throw new RestException(ErrorCode.INVALID_APP_ID);
+		}
+		return true;
+	}
+	
+	public boolean isIntegrationIdAssociatedWithCurrentScope(long orgId, long appId, long integrationId, Long userId, Long departmentId) throws RestException {
+		
+		isValidAppId(appId);
+		
+		isUserPresentInOrg(orgId, userId);
+		
+		if(this.scopePojo == null) {
+			isScopeRegistered(orgId, appId);
+		}
+		
+		if(this.integrationMasterPOJO == null) {
+			isValidIntegId(orgId, integrationId);
+		}
+		
+		int level = scopePojo.getLevel();
+		IntegrationPOJO integrationPojo = this.integrationMasterPOJO.getIntegrationDetails();
+		if(level == 1) {
+			if(integrationPojo.getDepartmentId() != null || integrationPojo.getUserId() != null) {
+				throw new RestException(ErrorCode.INTEGRATION_SCOPE_CHANGED);
+			}
+		}else if(level == 2) {
+			if(integrationPojo.getDepartmentId() == null) {
+				throw new RestException(ErrorCode.INTEGRATION_SCOPE_CHANGED);
+			}
+		}else {
+			if(integrationPojo.getUserId() == null) {
+				throw new RestException(ErrorCode.INTEGRATION_SCOPE_CHANGED);
+			}
 		}
 		return true;
 	}
@@ -39,12 +81,13 @@ public class APIUtil {
 		return true;
 	}
 	
-	public boolean isValidIntegId(long integId) throws RestException {
-		IntegrationBean integBean = new IntegrationBeanImpl();
-		this.integrationMasterPOJO = integBean.getIntegDetails(integId, scopePojo.getLevel());
-	
+	public boolean isValidIntegId(long orgId, long integId) throws RestException {
 		if(integrationMasterPOJO == null) {
-			throw new RestException(ErrorCode.INVALID_INTEGRATION_ID);
+			IntegrationBean integBean = new IntegrationBeanImpl();
+			this.integrationMasterPOJO = integBean.getIntegrationDetailsByIntegrationId(orgId, integId);
+			if(integrationMasterPOJO == null) {
+				throw new RestException(ErrorCode.INVALID_INTEGRATION_ID);
+			}
 		}
 		return true;
 	}
@@ -52,32 +95,46 @@ public class APIUtil {
 	public boolean isUserPresentInOrg(long orgId, long userId) throws RestException {
 		UserBean userBean = new UserBeanImpl();
 		this.userMasterPOJO = userBean.getUserDetailsById(userId, orgId);
-		
-		if(this.userMasterPOJO == null) {
-			throw new RestException(ErrorCode.INVALID_USER_NOT_PRESENT_IN_ORG);
-		}
 		return true;
 	}
 	
 	public boolean isAdminUser(long orgId, long userId) throws RestException{
+		return isAdminUser(orgId, userId, true);
+	}
+	
+	public boolean isAdminUser(long orgId, long userId, boolean isExceptionNeeded) throws RestException{
 		isUserPresentInOrg(orgId, userId);
 		
 		int role = this.userMasterPOJO.getOrgDetails().getRoleDetails().getRoleValue();
 		
-		if(!(role == IntegrationConstants.Roles.SUPER_ADMIN.getValue() || role == IntegrationConstants.Roles.ADMIN.getValue())) {
-			throw new RestException(ErrorCode.NOT_ORG_ADMIN);
+		if(role == IntegrationConstants.Roles.MEMBER.getValue()) {
+			if(isExceptionNeeded) {
+				throw new RestException(ErrorCode.NOT_ORG_ADMIN);
+			}
+			return false;
 		}
 		return true;
 	}
 	
 	public boolean isValidUserId(long userId) throws RestException {
 		UserBean userBean = new UserBeanImpl();
-		UserPOJO userPojo = userBean.getUserDetails(userId);
+		this.userPojo = userBean.getUserDetails(userId);
 		
 		if(userPojo == null) {
 			throw new RestException(ErrorCode.INVALID_USER_ID);
 		}
 		return true;
+	}
+	
+	public boolean isSuperAdminInExistingOrg(long userId) throws RestException {
+		OrgBean orgBean = new OrgBeanImpl();
+		boolean isSuperAdmin = orgBean.isSuperAdmin(userId);
+		
+		Map<Long, Long> privillagedUsersMap = ApplicationUtils.getPrivilagedUsers();
+		if(isSuperAdmin && !privillagedUsersMap.containsKey(userId)) {
+			throw new RestException(ErrorCode.ALREADY_SUPER_ADMIN_IN_ORG);
+		}
+		return false;
 	}
 	
 	public ScopePOJO getScopePojo() {
@@ -87,4 +144,73 @@ public class APIUtil {
 	public IntegrationMasterPOJO getIntegrationMasterPOJO() {
 		return this.integrationMasterPOJO;
 	}
+	
+	public UserPOJO getUserPojo() {
+		return this.userPojo;
+	}
+	
+	public static long getUniqueIdByLevel(int level, Long orgId, Long departmentId, Long userId) {
+		switch(level) {
+			case 1: return orgId;
+			case 2: return departmentId;
+			default: return userId;
+		}
+	}
+	
+	public boolean isUserAllowedToIntegrateByScope(long orgId, Long userId, Long departmentId, int level) throws RestException{
+		if(isAdminUser(orgId, userId, false)) {
+			return true;
+		}
+		
+		if(level == 1) {
+			throw new RestException(ErrorCode.NOT_ORG_ADMIN);
+		}
+		
+		if(level == 2) {
+			//throw Exception if current user is department member
+		}
+		
+		//Allow members of an org.
+		return true;
+	}
+	
+	public boolean isUserAllowedToModifyIntegration(long orgId, Long userId, Long departmentId, int level) throws RestException{
+		IntegrationBean integBean = new IntegrationBeanImpl();
+		IntegrationMasterPOJO integrationMasterPojo = integBean.getIntegDetailsByLevel(orgId, getUniqueIdByLevel(level, orgId, departmentId, userId), level);
+		
+		return isUserAllowedToModifyIntegration(integrationMasterPojo.getIntegrationDetails().getIntegrationId(), orgId, userId, departmentId, level);
+	}
+	
+	public boolean isUserAllowedToModifyIntegration(long integrationId, long orgId, Long userId, Long departmentId, int level) throws RestException{
+		if(this.integrationMasterPOJO == null) {
+			isValidIntegId(orgId, integrationId);
+		}
+		
+		if(isAdminUser(orgId, userId, false)) {
+			return true;
+		}
+		
+		if(level == 1) {
+			throw new RestException(ErrorCode.NOT_ORG_ADMIN);
+		}
+		
+		if(level == 2) {
+			//throw Exception if current user is department member
+			return true;
+		}
+		
+		if(!userId.equals(integrationMasterPOJO.getIntegrationDetails().getUserId())) {
+			throw new RestException(ErrorCode.USER_NOT_ASSOCIATED_INTEGRATION);
+		}
+		return true;
+	}
+	
+	public static long getUserId(HttpServletRequest request) {
+		String userItStr = request.getAttribute(ConfigConstants.USER_ID) + "";
+		if(userItStr != null && !"null".equals(userItStr)) {
+			return Long.parseLong(userItStr);
+		}
+		return -1;
+	}
+	
 }

@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.worksuite.core.bean.AccountsPOJO;
 
 public class IntegrationMasterPOJO {
 

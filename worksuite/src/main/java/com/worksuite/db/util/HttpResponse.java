@@ -21,7 +21,7 @@ public class HttpResponse
         		successBufferedReader = new BufferedReader(new InputStreamReader(this.connection.getInputStream()));
             }
             StringBuilder responseContent = new StringBuilder();
-            String content = "";
+            String content;
             while ((content = successBufferedReader.readLine()) != null) {
                 responseContent.append(String.valueOf(content) + "\n");
             }

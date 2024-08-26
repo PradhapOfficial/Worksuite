@@ -31,22 +31,16 @@ public class OpenAIAPI extends APIUtil {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getChat(@PathParam("orgId") long orgId, @PathParam("userId") long userId, @PathParam("appId") long appId, @PathParam("integrationId") long integrationId, String jsonStr) throws RestException {
 		try {
-			
 			isScopeRegistered(orgId, appId);
-			
-			LOGGER.log(Level.INFO, "scopePojo data :: " +  getScopePojo().toString());
-			
-			isValidIntegId(integrationId);
-		
+			isValidIntegId(orgId, integrationId);
+			LOGGER.log(Level.INFO, "Data while getChat called :: ");
 			IntegrationMasterPOJO integrationMasterPOJO = getIntegrationMasterPOJO();
-			LOGGER.log(Level.INFO, "integrationMasterPOJO data :: " + integrationMasterPOJO.toString());
 			
+			LOGGER.log(Level.INFO, "Data while getChat :: " + integrationMasterPOJO.toString());
 			JsonObject jsonObj = new Gson().fromJson(jsonStr, JsonObject.class);
 			
 			jsonObj = OpenAIUtil.setChatRequiredFileds(integrationMasterPOJO, jsonObj);
-			OpenAI openAI = new OpenAI();
-			
-			return openAI.getChat(integrationMasterPOJO.getAuthDetails().getToken(), jsonObj).toString();
+			return OpenAI.getChat(integrationMasterPOJO.getAuthDetails().getToken(), jsonObj).toString();
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
