@@ -81,7 +81,7 @@ __webpack_require__.$Refresh$.runtime = __webpack_require__(/*! ./node_modules/r
 
 
 const CHAT_URL = `${window.isDevelopment ? "/worksuite" : ""}/api/v1/${window.orgId}/geminiai`;
-const GET_GEMINIAI_INTEGRATION_URL = `${window.isDevelopment ? "/worksuite" : ""}/api/v1/${window.orgId}/integration/${window.userId}/${_Constants__WEBPACK_IMPORTED_MODULE_0__.Apps.GEMINI_AI_APP_ID}`;
+const GET_GEMINIAI_INTEGRATION_URL = `${window.isDevelopment ? "/worksuite" : ""}/api/v1/${window.orgId}/integration/${_Constants__WEBPACK_IMPORTED_MODULE_0__.Apps.GEMINI_AI_APP_ID}`;
 function chat(payload, callback, integrationId) {
   axios__WEBPACK_IMPORTED_MODULE_1__["default"].post(`${CHAT_URL}/${integrationId}`, JSON.stringify(payload), {
     headers: {
@@ -46499,7 +46499,7 @@ const isThenable = thing => thing && (isObject(thing) || isFunction(thing)) && i
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("07fc3e1d248401a86977")
+/******/ 		__webpack_require__.h = () => ("72fe0b6b12e259923728")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/global */

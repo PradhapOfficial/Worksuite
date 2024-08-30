@@ -48,4 +48,9 @@ public class IntegrationMasterPOJO {
 	public String toString() {
 		return toJsonObject().toString();
 	}
+	
+	public IntegrationMasterPOJO encrptToken() {
+		this.getAuthDetails().setToken("****");
+		return this;
+	}
 }

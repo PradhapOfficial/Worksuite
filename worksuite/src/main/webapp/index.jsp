@@ -39,7 +39,7 @@
 		}
 	}
 	boolean isDevelopment = ApplicationUtils.isDevelopment();
-	String staticURL = (isDevelopment ? "http://localhost:3001/static/js/bundle.js" : "static/react-client.js");
+	String staticURL = (false ? "http://localhost:3001/static/js/bundle.js" : "static/react-client.js");
 %>
 <script>
 	var isDevelopment = <%=isDevelopment%>;

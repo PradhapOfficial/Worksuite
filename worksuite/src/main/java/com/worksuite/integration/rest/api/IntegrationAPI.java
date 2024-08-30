@@ -71,7 +71,7 @@ public class IntegrationAPI extends APIUtil {
 			long uniqueId = APIUtil.getUniqueIdByLevel(level, orgId, null, userId);
 			
 			IntegrationBean integBean = new IntegrationBeanImpl();
-			return integBean.addIntegDetails(orgId, uniqueId, integPojo, authPojo, listOfintegPropPojo, level);
+			return integBean.addIntegDetails(orgId, uniqueId, integPojo, authPojo, listOfintegPropPojo, level).encrptToken();
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
@@ -91,7 +91,7 @@ public class IntegrationAPI extends APIUtil {
 			isIntegrationIdAssociatedWithCurrentScope(orgId, appId, integrationId, userId, null);
 			isUserAllowedToModifyIntegration(integrationId, orgId, userId, null, getScopePojo().getLevel());
 			
-			return getIntegrationMasterPOJO();
+			return getIntegrationMasterPOJO().encrptToken();
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {
@@ -117,7 +117,7 @@ public class IntegrationAPI extends APIUtil {
 			
 			IntegrationBean integBean = new IntegrationBeanImpl();
 			IntegrationMasterPOJO integrationMasterPOJO = integBean.getIntegDetailsByLevel(orgId, uniqueId, level);
-			return integrationMasterPOJO;
+			return integrationMasterPOJO.encrptToken();
 		}catch(RestException re) {
 			throw re;
 		}catch(Exception e) {

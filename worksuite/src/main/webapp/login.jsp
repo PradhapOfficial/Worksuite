@@ -75,11 +75,11 @@
    				}
    				
    				StringBuilder tokenBuilder = new StringBuilder(ConfigConstants.WS_CSRF_BEARER);
-   				tokenBuilder.append(token);
+   				tokenBuilder.append(tokenMappingPojo.getToken());
    				
    				response.addHeader(ConfigConstants.X_CSRF_TOKEN, tokenBuilder.toString());
    				//request.getRequestDispatcher("index.jsp").forward(request, response);
-   				httpResponse.sendRedirect("index.jsp?token=" + token);
+   				httpResponse.sendRedirect("index.jsp?token=" + tokenMappingPojo.getToken());
    			}catch(RestException e){
    				if(e.getErrorCode() == ErrorCode.INVALID_EMAIL_ID_AND_PASSWORD.getErrorCode()){
    					out.println("Invalid user name and password");

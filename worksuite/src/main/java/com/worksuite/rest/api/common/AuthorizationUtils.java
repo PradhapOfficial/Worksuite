@@ -17,7 +17,7 @@ public class AuthorizationUtils {
 	
 	public static String getToken(String userId) {
 		try {
-			String token = Jwts.builder().setSubject("user")
+			String token = Jwts.builder().setSubject("user" + System.currentTimeMillis())
 					.claim(ConfigConstants.USER_DETAILS_CLAIM, userId)
 					.signWith(SignatureAlgorithm.HS512, ConfigConstants.SECRET_KEY)
 				    .compact();

@@ -51,6 +51,20 @@ public class ApplicationUtils {
 		return false;
 	}
 	
+	public static boolean isMultiSessionAllowed() {
+		try {
+			String systemPropertyValue = System.getProperty("IS_MULTI_SESSION_ALLOWED");
+			if(systemPropertyValue != null) {
+				return Boolean.parseBoolean(systemPropertyValue);
+			}
+			
+			return Boolean.parseBoolean(resourceBundleProperties.getString("IS_MULTI_SESSION_ALLOWED"));
+		}catch(Exception e) {
+			LOGGER.log(Level.ERROR, "Exception occured while isMultiSessionAllowed :: ", e);
+		}
+		return false;
+	}
+	
 	public static Map<Long, Long> getPrivilagedUsers() {
 		String  privilagedUserStr = getProperty(ConfigConstants.IS_PRIVILAGED_USER);
 		String[] privilagedUsers = privilagedUserStr.split(",");
